@@ -117,8 +117,8 @@ export const StudentResultDetailPage = () => {
   const r = result;
   const totalQuestions = r.resultItems?.length || 0;
   const correctCount = r.resultItems?.filter((item) => item.isCorrect).length || 0;
-  const wrongCount = r.resultItems?.filter((item) => !item.isCorrect).length || 0;
-  const unansweredCount = totalQuestions - correctCount - wrongCount;
+  const unansweredCount = r.resultItems?.filter((item) => item.selectedOption === null || item.selectedOption === undefined).length || 0;
+  const wrongCount = totalQuestions - correctCount - unansweredCount;
 
   return (
     <div>

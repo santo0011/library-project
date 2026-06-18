@@ -43,7 +43,13 @@ export const StudentDashboardPage = () => {
   const dash = data?.dashboard || {};
   const results = data?.results || [];
 
-  const availableExams = exams.filter((e) => !e.attempted).length;
+  const now = new Date();
+  const availableExams = exams.filter((e) => {
+    if (e.attempted) return false;
+    const start = new Date(e.startDate);
+    const end = new Date(e.endDate);
+    return now >= start && now <= end;
+  }).length;
   const attemptedExams = exams.filter((e) => e.attempted).length;
   const completedExams = dash.completedExams || results.filter((r) => r.status === 'submitted').length;
   const pendingExams = dash.pendingExams || results.filter((r) => r.status === 'in_progress').length;
@@ -116,19 +122,33 @@ export const StudentDashboardPage = () => {
                 </div>
               ) : (
                 <div className="d-flex flex-column gap-2">
-                  {exams.filter((e) => !e.attempted).slice(0, 5).map((exam) => (
-                    <div key={exam._id} className="d-flex align-items-center justify-content-between p-3 rounded-3"
-                      style={{ background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
-                      <div>
-                        <div className="fw-semibold small" style={{ color: 'var(--app-text)' }}>{exam.name}</div>
-                        <small style={{ color: 'var(--app-muted' }}>{exam.subject} &bull; {exam.totalMarks} marks</small>
-                      </div>
-                      <button className="btn btn-sm btn-primary rounded-pill px-3 shadow-sm"
-                        onClick={() => navigate('/student/exams')}>
-                        Start
-                      </button>
-                    </div>
-                  ))}
+                  {(() => {
+                    const now = new Date();
+                    return exams.filter((e) => !e.attempted).slice(0, 5).map((exam) => {
+                      const start = new Date(exam.startDate);
+                      const end = new Date(exam.endDate);
+                      const isAvailable = now >= start && now <= end;
+                      return (
+                        <div key={exam._id} className="d-flex align-items-center justify-content-between p-3 rounded-3"
+                          style={{ background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
+                          <div>
+                            <div className="fw-semibold small" style={{ color: '#000', fontSize: "14px" }}>{exam.name}</div>
+                            <small style={{ color: 'var(--app-muted' }}>{exam.subject} &bull; {exam.totalMarks} marks</small>
+                          </div>
+                          {isAvailable ? (
+                            <button className="btn btn-sm btn-primary rounded-pill px-3 shadow-sm"
+                              onClick={() => navigate('/student/exams')}>
+                              Start
+                            </button>
+                          ) : (
+                            <span className="btn btn-sm btn-outline-secondary rounded-pill px-3" style={{ cursor: 'default' }}>
+                              Not Available Yet
+                            </span>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>

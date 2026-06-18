@@ -84,8 +84,8 @@ class StudentExamService {
       const answer = submission.answers.find(
         (a) => a.question.toString() === question._id.toString()
       );
-      const selectedOption = answer ? Number(answer.selectedOption) : -1;
-      const isCorrect = selectedOption === Number(question.correctOption);
+      const selectedOption = answer ? Number(answer.selectedOption) : null;
+      const isCorrect = selectedOption !== null && selectedOption === Number(question.correctOption);
       const awardedMarks = isCorrect ? question.marks : 0;
       if (isCorrect) score += question.marks;
       return {

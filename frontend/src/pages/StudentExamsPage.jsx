@@ -110,6 +110,22 @@ export const StudentExamsPage = () => {
                         `${exam.questions?.length || 0} questions`}
                     </p>
 
+                    <div className="d-flex justify-content-between align-items-center mb-3 px-1">
+                      <small className="text-secondary">
+                        {(() => {
+                          const opts = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+                          if (statusLabel === 'Upcoming') {
+                            return <><i className="bi bi-calendar-event me-1" />Starts On: {new Date(exam.startDate).toLocaleDateString('en-US', opts)}</>;
+                          } else if (statusLabel === 'Available') {
+                            return <><i className="bi bi-clock-history me-1" />Available Until: {new Date(exam.endDate).toLocaleDateString('en-US', opts)}</>;
+                          } else if (statusLabel === 'Expired') {
+                            return <><i className="bi bi-clock-history me-1" />Expired On: {new Date(exam.endDate).toLocaleDateString('en-US', opts)}</>;
+                          }
+                          return null;
+                        })()}
+                      </small>
+                    </div>
+
                     <div className="d-flex gap-3 mb-3">
                       <div
                         className="text-center flex-fill p-2 rounded-2"

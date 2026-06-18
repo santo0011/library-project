@@ -169,12 +169,29 @@ export const ExamsPage = () => {
 
           </table>
         </div>
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="small text-secondary">Page {exams.page} of {exams.pages}</span>
-          <div className="btn-group">
-            <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
-            <button className="btn btn-outline-secondary" disabled={filters.page >= exams.pages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}>Next</button>
-          </div>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span className="small text-secondary">Showing {(exams.items.length > 0 ? ((exams.page - 1) * 10 + 1) : 0)}–{Math.min(exams.page * 10, exams.total)} of {exams.total}</span>
+          {exams.pages > 1 && (
+            <div className="btn-group btn-group-sm">
+              <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
+              {(() => {
+                const pages = [];
+                const total = exams.pages;
+                const current = filters.page;
+                const range = 2;
+                let start = Math.max(1, current - range);
+                let end = Math.min(total, current + range);
+                if (start > 1) { pages.push(1); if (start > 2) pages.push('...'); }
+                for (let i = start; i <= end; i++) pages.push(i);
+                if (end < total) { if (end < total - 1) pages.push('...'); pages.push(total); }
+                return pages.map((p, i) =>
+                  p === '...' ? <span key={`e${i}`} className="btn btn-outline-secondary border-0 px-1" style={{ cursor: 'default', fontSize: 12 }}>…</span>
+                    : <button key={p} className={`btn btn-outline-secondary ${current === p ? 'active' : ''}`} onClick={() => setFilters({ ...filters, page: p })}>{p}</button>
+                );
+              })()}
+              <button className="btn btn-outline-secondary" disabled={filters.page >= exams.pages} onClick={() => setFilters({ ...filters, page: exams.page + 1 })}>Next</button>
+            </div>
+          )}
         </div>
       </div>
       <ExamFormModal show={Boolean(editing)} exam={editing?._id ? editing : null} onClose={() => setEditing(null)} onSubmit={save} busy={busy} />

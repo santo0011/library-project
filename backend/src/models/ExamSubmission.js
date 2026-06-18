@@ -14,7 +14,7 @@ const resultItemSchema = new mongoose.Schema(
     question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
     title: { type: String, required: true },
     options: [{ text: String }],
-    selectedOption: { type: Number, min: 0, max: 3 },
+    selectedOption: { type: Number, default: null },
     correctOption: { type: Number, required: true, min: 0, max: 3 },
     isCorrect: { type: Boolean, required: true },
     marks: { type: Number, required: true },

@@ -67,12 +67,12 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-body p-4">
           <div className="d-flex align-items-center gap-4 flex-wrap">
-            <div
+            {/* <div
               className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fs-2 fw-bold"
               style={{ width: 80, height: 80, minWidth: 80 }}
             >
               {student.name?.charAt(0)?.toUpperCase() || 'S'}
-            </div>
+            </div> */}
             <div className="flex-grow-1">
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <h4 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>{student.name}</h4>
