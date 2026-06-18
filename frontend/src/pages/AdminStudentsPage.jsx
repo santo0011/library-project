@@ -4,6 +4,8 @@ import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { api } from '../services/api.js';
 import { Modal } from '../components/common/Modal.jsx';
+import { Drawer } from '../components/common/Drawer.jsx';
+import { AdminStudentDetailPage } from './AdminStudentDetailPage.jsx';
 
 const blankStudent = {
   name: '', email: '', password: '', mobile: '', gender: 'Male', dateOfBirth: ''
@@ -23,6 +25,7 @@ export const AdminStudentsPage = () => {
   const [resetPw, setResetPw] = useState(null);
   const [resetPwVal, setResetPwVal] = useState('');
   const [busy, setBusy] = useState(false);
+  const [drawerStudentId, setDrawerStudentId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -160,7 +163,7 @@ export const AdminStudentsPage = () => {
                   <td className="text-end">
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setEditing({ ...s })} title="Edit"><i className="bi bi-pencil" /></button>
                     <button className="btn btn-sm btn-outline-warning me-1" onClick={() => { setResetPw(s); setResetPwVal(''); }} title="Reset Password"><i className="bi bi-key" /></button>
-                    <button className="btn btn-sm btn-outline-info me-1" onClick={() => window.open(`/students/${s._id}`, '_blank')} title="View Profile"><i className="bi bi-eye" /></button>
+                    <button className="btn btn-sm btn-outline-info me-1" onClick={() => setDrawerStudentId(s._id)} title="View Profile"><i className="bi bi-eye" /></button>
                     <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => setToggling(s)} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
                       <i className={`bi ${s.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`} />
                     </button>
@@ -284,6 +287,16 @@ export const AdminStudentsPage = () => {
       )}
 
       <ConfirmModal show={Boolean(toggling)} title={toggling?.status === 'active' ? 'Deactivate Student' : 'Activate Student'} message={`Are you sure you want to ${toggling?.status === 'active' ? 'deactivate' : 'activate'} ${toggling?.name}?`} onCancel={() => setToggling(null)} onConfirm={toggleStatus} busy={busy} />
+
+      {/* Student Details Drawer */}
+      <Drawer
+        show={Boolean(drawerStudentId)}
+        title="Student Details"
+        onClose={() => setDrawerStudentId(null)}
+        width="900px"
+      >
+        {drawerStudentId && <AdminStudentDetailPage id={drawerStudentId} onClose={() => setDrawerStudentId(null)} />}
+      </Drawer>
     </>
   );
 };

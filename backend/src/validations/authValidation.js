@@ -15,6 +15,10 @@ export const changePasswordValidation = [
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
 ];
 
+export const changeEmailValidation = [
+  body('newEmail').isEmail().normalizeEmail().withMessage('Valid email is required')
+];
+
 export const createStudentValidation = [
   body('name').trim().isLength({ min: 2, max: 80 }).withMessage('Name must be 2 to 80 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),

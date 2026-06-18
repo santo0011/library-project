@@ -57,6 +57,12 @@ class AuthController {
     res.clearCookie('refreshToken', cookieOptions);
     res.status(StatusCodes.OK).json({ success: true, message: 'Password changed successfully' });
   });
+
+  changeEmail = asyncHandler(async (req, res) => {
+    await authService.updateEmail(req.user._id, req.body.newEmail);
+    res.clearCookie('refreshToken', cookieOptions);
+    res.status(StatusCodes.OK).json({ success: true, message: 'Email changed successfully' });
+  });
 }
 
 export const authController = new AuthController();

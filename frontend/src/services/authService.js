@@ -22,6 +22,10 @@ export const authService = {
     const { data } = await api.post('/auth/change-password', payload);
     return data;
   },
+  async changeEmail(newEmail) {
+    const { data } = await api.post('/auth/change-email', { newEmail });
+    return data;
+  },
   async logout() {
     await api.post('/auth/logout');
   }

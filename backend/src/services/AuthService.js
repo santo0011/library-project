@@ -100,6 +100,23 @@ class AuthService {
     user.refreshTokenHash = undefined;
     await user.save();
   }
+
+  async updateEmail(userId, newEmail) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      throw new AppError('Invalid email format', StatusCodes.BAD_REQUEST);
+    }
+    const existing = await userRepository.findOne({ email: newEmail.toLowerCase(), _id: { $ne: userId } });
+    if (existing) {
+      throw new AppError('This email is already in use by another account', StatusCodes.CONFLICT);
+    }
+    const user = await userRepository.updateById(userId, {
+      email: newEmail.toLowerCase(),
+      refreshTokenHash: null
+    });
+    if (!user) throw new AppError('User not found', StatusCodes.NOT_FOUND);
+    return user;
+  }
 }
 
 export const authService = new AuthService();

@@ -697,6 +697,104 @@ body {
 .modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 24px 24px; }
 
 /* =============================================
+   DRAWER - Right Side Sliding Panel
+   ============================================= */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  backdrop-filter: blur(4px);
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drawer-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1050;
+}
+
+.drawer-box {
+  background: var(--app-surface);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--app-border);
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--app-text);
+}
+
+.drawer-close {
+  background: none;
+  border: none;
+  color: var(--app-muted);
+  font-size: 1rem;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.drawer-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--app-text);
+}
+
+.drawer-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .drawer-box {
+    max-width: 100% !important;
+  }
+
+  .drawer-body {
+    padding: 16px;
+  }
+
+  .drawer-header {
+    padding: 16px;
+  }
+}
+
+/* =============================================
    MOBILE MENU TOGGLE
    ============================================= */
 .mobile-menu {

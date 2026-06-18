@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
 
-export const AdminStudentDetailPage = () => {
-  const { id } = useParams();
+export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
+  const { id: paramId } = useParams();
+  const id = propId || paramId;
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
   const [results, setResults] = useState([]);
@@ -48,10 +49,18 @@ export const AdminStudentDetailPage = () => {
     bestScore: results.length ? Math.max(...results.map((r) => r.percentage || 0)) : 0
   };
 
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate('/students');
+    }
+  };
+
   return (
     <div>
-      <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/students')}>
-        <i className="bi bi-arrow-left me-1" /> Back to Students
+      <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={handleBack}>
+        <i className="bi bi-arrow-left me-1" /> {onClose ? 'Close' : 'Back to Students'}
       </button>
 
       {/* Student Profile Card */}

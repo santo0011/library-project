@@ -9,7 +9,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { accessToken, status } = useSelector((state) => state.auth);
-  const [form, setForm] = useState({ email: 'santo@gmail.com', password: '123456', portal: 'admin' });
+  const [form, setForm] = useState({ email: '', password: '', portal: 'admin' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const toast = useToast();
