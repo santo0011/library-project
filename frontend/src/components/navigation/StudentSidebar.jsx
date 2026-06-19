@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logoutUser } from '../../redux/slices/authSlice.js';
+import { useToast } from '../common/Toast.jsx';
 
 const items = [
   { to: '/student/dashboard', icon: 'bi-speedometer2', label: 'Dashboard' },
@@ -13,13 +14,15 @@ const items = [
 export const StudentSidebar = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleLogout = async () => {
     setShowConfirm(false);
     await dispatch(logoutUser());
     onClose();
-    navigate('/login');
+    toast('Success', 'Logged out successfully.', 'success');
+    setTimeout(() => navigate('/login'), 300);
   };
 
   return (

@@ -181,7 +181,7 @@ export const StudentResultDetailPage = () => {
 
       {/* Question Stats */}
       <div className="row g-3 mb-4">
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
@@ -194,7 +194,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
@@ -207,7 +207,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle text-white" style={{ width: 48, height: 48, minWidth: 48, background: '#e65100' }}>
