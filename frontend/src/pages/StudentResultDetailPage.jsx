@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
 
@@ -95,7 +96,7 @@ export const StudentResultDetailPage = () => {
                         {r.passed ? 'Pass' : 'Fail'}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</td>
+                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</td>
                     <td className="text-end">
                       <button className="btn btn-sm rounded-pill text-white px-3"
                         style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
@@ -117,8 +118,8 @@ export const StudentResultDetailPage = () => {
   const r = result;
   const totalQuestions = r.resultItems?.length || 0;
   const correctCount = r.resultItems?.filter((item) => item.isCorrect).length || 0;
-  const wrongCount = r.resultItems?.filter((item) => !item.isCorrect).length || 0;
-  const unansweredCount = totalQuestions - correctCount - wrongCount;
+  const unansweredCount = r.resultItems?.filter((item) => item.selectedOption === null || item.selectedOption === undefined).length || 0;
+  const wrongCount = totalQuestions - correctCount - unansweredCount;
 
   return (
     <div>
@@ -173,7 +174,7 @@ export const StudentResultDetailPage = () => {
           <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
             <div className="card-body p-3 text-center">
               <small className="text-danger fw-medium">Date</small>
-              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</div>
+              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
             </div>
           </div>
         </div>
@@ -181,7 +182,7 @@ export const StudentResultDetailPage = () => {
 
       {/* Question Stats */}
       <div className="row g-3 mb-4">
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
@@ -194,7 +195,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
@@ -207,7 +208,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle text-white" style={{ width: 48, height: 48, minWidth: 48, background: '#e65100' }}>

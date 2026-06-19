@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export const Drawer = ({ show, title, children, onClose, width = '800px' }) => {
+export const Drawer = ({ show, title, children, onClose, width = '560px' }) => {
   const drawerRef = useRef(null);
 
   useEffect(() => {
@@ -22,16 +22,17 @@ export const Drawer = ({ show, title, children, onClose, width = '800px' }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [show, onClose]);
 
-  if (!show) return null;
-
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget && onClose) onClose();
   };
 
   return (
     <>
-      <div className="drawer-overlay" onClick={handleBackdropClick} />
-      <div className="drawer-container" ref={drawerRef}>
+      <div
+        className={`drawer-overlay ${show ? 'drawer-overlay--visible' : ''}`}
+        onClick={handleBackdropClick}
+      />
+      <div className={`drawer-container ${show ? 'drawer-container--visible' : ''}`} ref={drawerRef}>
         <div className="drawer-box" style={{ maxWidth: width }}>
           <div className="drawer-header">
             <h2 className="drawer-title">{title}</h2>

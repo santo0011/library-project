@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
 
@@ -57,6 +58,8 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
     }
   };
 
+
+
   return (
     <div>
       <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={handleBack}>
@@ -67,12 +70,12 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-body p-4">
           <div className="d-flex align-items-center gap-4 flex-wrap">
-            <div
+            {/* <div
               className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fs-2 fw-bold"
               style={{ width: 80, height: 80, minWidth: 80 }}
             >
               {student.name?.charAt(0)?.toUpperCase() || 'S'}
-            </div>
+            </div> */}
             <div className="flex-grow-1">
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <h4 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>{student.name}</h4>
@@ -86,7 +89,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                 <span><i className="bi bi-telephone me-1" />{student.mobile || 'N/A'}</span>
                 <span><i className="bi bi-gender-ambiguous me-1" />{student.gender || 'N/A'}</span>
                 <span><i className="bi bi-calendar me-1" />
-                  Joined: {student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}
+                  Joined: {student.createdAt ? moment(student.createdAt).format('DD, MMM, YYYY') : 'N/A'}
                 </span>
               </div>
             </div>
@@ -142,6 +145,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                 <thead className="">
                   <tr>
                     <th style={{ color: 'var(--app-text)' }}>Exam</th>
+                    <th style={{ color: 'var(--app-text)' }}>Subject</th>
                     <th style={{ color: 'var(--app-text)' }}>Total Marks</th>
                     <th style={{ color: 'var(--app-text)' }}>Obtained</th>
                     <th style={{ color: 'var(--app-text)' }}>Percentage</th>
@@ -153,7 +157,8 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                   {results.map((r) => (
                     <tr key={r._id}>
                       <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
-                      <td style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
+                      <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r?.exam?.subject}</td>
+                      <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>  
                       <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.score}</td>
                       <td>
                         <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}`}>
@@ -166,7 +171,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                         </span>
                       </td>
                       <td style={{ color: 'var(--app-text)' }}>
-                        {r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}
+                        {r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}
                       </td>
                     </tr>
                   ))}

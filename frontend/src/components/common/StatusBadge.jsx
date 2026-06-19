@@ -1,9 +1,19 @@
 export const StatusBadge = ({ status }) => {
   const styles = {
-    active: 'text-bg-success',
-    inactive: 'text-bg-secondary',
-    invited: 'text-bg-warning'
+    active: "text-bg-success",
+    inactive: "text-bg-secondary",
+    invited: "text-bg-warning",
+    published: "text-bg-success",
+    draft: "text-bg-warning",
+    archived: "text-bg-danger",
   };
 
-  return <span className={`badge ${styles[status] || 'text-bg-secondary'}`}>{status}</span>;
+  const formattedStatus =
+    status?.charAt(0).toUpperCase() + status?.slice(1);
+
+  return (
+    <span className={`badge ${styles[status] || "text-bg-secondary"}`}>
+      {formattedStatus}
+    </span>
+  );
 };

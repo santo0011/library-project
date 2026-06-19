@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
-import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { api } from '../services/api.js';
 import { Modal } from '../components/common/Modal.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { AdminStudentDetailPage } from './AdminStudentDetailPage.jsx';
+import { confirmAction, showToast } from '../utils/sweetAlerts.js';
 
 const blankStudent = {
   name: '', email: '', password: '', mobile: '', gender: 'Male', dateOfBirth: ''
@@ -21,9 +22,6 @@ export const AdminStudentsPage = () => {
   const [createBusy, setCreateBusy] = useState(false);
   const [createSuccess, setCreateSuccess] = useState(null);
   const [editing, setEditing] = useState(null);
-  const [toggling, setToggling] = useState(null);
-  const [resetPw, setResetPw] = useState(null);
-  const [resetPwVal, setResetPwVal] = useState('');
   const [busy, setBusy] = useState(false);
   const [drawerStudentId, setDrawerStudentId] = useState(null);
 
@@ -79,6 +77,10 @@ export const AdminStudentsPage = () => {
       delete payload.lastLoginAt;
       delete payload.__v;
       delete payload.refreshTokenHash;
+      // Only send password if admin entered a new one
+      if (!payload.password || !payload.password.trim()) {
+        delete payload.password;
+      }
       await api.patch(`/students/${editing._id}`, payload);
       setEditing(null);
       load();
@@ -87,24 +89,24 @@ export const AdminStudentsPage = () => {
     }
   };
 
-  const resetPassword = async () => {
-    setBusy(true);
-    try {
-      await api.patch(`/students/${resetPw._id}/reset-password`, { newPassword: resetPwVal });
-      setResetPw(null);
-      setResetPwVal('');
-      load();
-    } finally {
-      setBusy(false);
-    }
-  };
+  const toggleStatus = async (student) => {
+    const isActive = student.status === 'active';
+    const action = isActive ? 'deactivate' : 'activate';
+    const result = await confirmAction({
+      title: isActive ? 'Deactivate Student' : 'Activate Student',
+      text: `Are you sure you want to ${action} ${student.name}?`,
+      confirmButtonText: isActive ? 'Deactivate' : 'Activate',
+      confirmButtonColor: isActive ? '#ffc107' : '#198754'
+    });
+    if (!result.isConfirmed) return;
 
-  const toggleStatus = async () => {
     setBusy(true);
     try {
-      await api.patch(`/students/${toggling._id}/toggle-status`);
-      setToggling(null);
+      await api.patch(`/students/${student._id}/toggle-status`);
       load();
+      showToast('success', `Student ${isActive ? 'deactivated' : 'activated'} successfully.`);
+    } catch (err) {
+      showToast('error', err.response?.data?.message || `Failed to ${action} student`);
     } finally {
       setBusy(false);
     }
@@ -159,12 +161,11 @@ export const AdminStudentsPage = () => {
                   <td>{s.mobile || '-'}</td>
                   <td>{s.gender || '-'}</td>
                   <td><StatusBadge status={s.status} /></td>
-                  <td>{new Date(s.createdAt).toLocaleDateString()}</td>
+                  <td>{s.createdAt ? moment(s.createdAt).format('DD, MMM, YYYY') : '-'}</td>
                   <td className="text-end">
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setEditing({ ...s })} title="Edit"><i className="bi bi-pencil" /></button>
-                    <button className="btn btn-sm btn-outline-warning me-1" onClick={() => { setResetPw(s); setResetPwVal(''); }} title="Reset Password"><i className="bi bi-key" /></button>
                     <button className="btn btn-sm btn-outline-info me-1" onClick={() => setDrawerStudentId(s._id)} title="View Profile"><i className="bi bi-eye" /></button>
-                    <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => setToggling(s)} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
+                    <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => toggleStatus(s)} disabled={busy} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
                       <i className={`bi ${s.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`} />
                     </button>
                   </td>
@@ -173,12 +174,29 @@ export const AdminStudentsPage = () => {
             </tbody>
           </table>
         </div>
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="small text-secondary">Page {students.page} of {students.pages}</span>
-          <div className="btn-group">
-            <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
-            <button className="btn btn-outline-secondary" disabled={filters.page >= students.pages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}>Next</button>
-          </div>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span className="small text-secondary">Showing {(students.items.length > 0 ? ((students.page - 1) * 10 + 1) : 0)}–{Math.min(students.page * 10, students.total)} of {students.total}</span>
+          {students.pages > 1 && (
+            <div className="btn-group btn-group-sm">
+              <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
+              {(() => {
+                const pages = [];
+                const total = students.pages;
+                const current = filters.page;
+                const range = 2;
+                let start = Math.max(1, current - range);
+                let end = Math.min(total, current + range);
+                if (start > 1) { pages.push(1); if (start > 2) pages.push('...'); }
+                for (let i = start; i <= end; i++) pages.push(i);
+                if (end < total) { if (end < total - 1) pages.push('...'); pages.push(total); }
+                return pages.map((p, i) =>
+                  p === '...' ? <span key={`e${i}`} className="btn btn-outline-secondary border-0 px-1" style={{ cursor: 'default', fontSize: 12 }}>…</span>
+                    : <button key={p} className={`btn btn-outline-secondary ${current === p ? 'active' : ''}`} onClick={() => setFilters({ ...filters, page: p })}>{p}</button>
+                );
+              })()}
+              <button className="btn btn-outline-secondary" disabled={filters.page >= students.pages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}>Next</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -267,33 +285,19 @@ export const AdminStudentsPage = () => {
               </select>
             </div>
             <div className="col-12">
-              <label className="form-label">New Password (leave blank to keep current)</label>
-              <input type="password" className="form-control" placeholder="Enter new password" value={editing._newPw || ''} onChange={(e) => setEditing({ ...editing, _newPw: e.target.value, password: e.target.value || undefined })} />
+              <label className="form-label">Reset Password (leave blank to keep current)</label>
+              <input type="password" className="form-control" placeholder="Enter new password" value={editing._newPw || ''} onChange={(e) => setEditing({ ...editing, _newPw: e.target.value, password: e.target.value })} />
             </div>
           </div>
         </Modal>
       )}
-
-      {/* Reset Password Modal */}
-      {resetPw && (
-        <Modal show={true} title={`Reset Password - ${resetPw.name}`} onClose={() => setResetPw(null)}
-          footer={<><button className="btn btn-outline-secondary" onClick={() => setResetPw(null)}>Cancel</button><button className="btn btn-warning" onClick={resetPassword} disabled={busy || !resetPwVal}>{busy ? 'Resetting...' : 'Reset Password'}</button></>}
-        >
-          <div className="mb-3">
-            <label className="form-label">New Password</label>
-            <input type="password" className="form-control" value={resetPwVal} onChange={(e) => setResetPwVal(e.target.value)} placeholder="Enter new password" />
-          </div>
-        </Modal>
-      )}
-
-      <ConfirmModal show={Boolean(toggling)} title={toggling?.status === 'active' ? 'Deactivate Student' : 'Activate Student'} message={`Are you sure you want to ${toggling?.status === 'active' ? 'deactivate' : 'activate'} ${toggling?.name}?`} onCancel={() => setToggling(null)} onConfirm={toggleStatus} busy={busy} />
 
       {/* Student Details Drawer */}
       <Drawer
         show={Boolean(drawerStudentId)}
         title="Student Details"
         onClose={() => setDrawerStudentId(null)}
-        width="900px"
+        width="850px"
       >
         {drawerStudentId && <AdminStudentDetailPage id={drawerStudentId} onClose={() => setDrawerStudentId(null)} />}
       </Drawer>

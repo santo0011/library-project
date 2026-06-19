@@ -36,31 +36,71 @@ export const DashboardPage = () => {
   const examStatus = summary?.examsByStatus || [];
   const passFail = summary?.passFail || [];
 
-  // Gender Distribution Chart
+  // Gender Distribution Chart (counts)
   const genderChartData = {
     labels: ['Male', 'Female'],
     datasets: [
       {
         data: [cards.maleCount || 0, cards.femaleCount || 0],
-        backgroundColor: ['#2454d6', '#dc3545'],
+        backgroundColor: ['#465b96', '#0f8b8d'],
         borderWidth: 0
       }
     ]
+  };
+  const genderChartOptions = {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = cards.maleCount + cards.femaleCount;
+            const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+            return `${context.label} : ${pct}%`;
+          }
+        }
+      }
+    }
   };
 
   // Exams by Status Chart
   const examStatusChartData = {
-    labels: examStatus.map((item) => item.status || 'Unknown'),
+    labels: examStatus.map(
+      (item) =>
+        item.status
+          ? item.status.charAt(0).toUpperCase() + item.status.slice(1)
+          : "Unknown"
+    ),
     datasets: [
       {
         data: examStatus.map((item) => item.count),
-        backgroundColor: ['#2454d6', '#0f8b8d', '#b86b00', '#6c757d'],
-        borderWidth: 0
-      }
-    ]
+        backgroundColor: ["#465b96", "#0f8b8d"],
+        borderWidth: 0,
+      },
+    ],
   };
 
-  // Student Growth Chart (using recent students data)
+  const examStatusChartOptions = {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = examStatus.reduce(
+              (sum, item) => sum + item.count,
+              0
+            );
+
+            const pct =
+              total > 0
+                ? ((context.raw / total) * 100).toFixed(1)
+                : 0;
+
+            return `${context.label} : ${pct}%`;
+          },
+        },
+      },
+    },
+  };
+
+  // Student Growth Chart
   const growthData = summary?.studentGrowth || [];
   const growthChartData = {
     labels: growthData.length ? growthData.map((g) => g.month) : [],
@@ -98,25 +138,49 @@ export const DashboardPage = () => {
         <div className="alert alert-danger">{error}</div>
       ) : (
         <>
-          {/* Statistics Cards */}
+          {/* Row 1: Student Statistics Cards */}
           <div className="row g-3 mb-4">
             {[
-              ['Total Students', cards.totalStudents, 'bi-people text-primary'],
-              ['Male Students', cards.maleCount, 'bi-gender-male text-primary'],
-              ['Female Students', cards.femaleCount, 'bi-gender-female text-danger'],
-              ['Male %', cards.malePct + '%', 'bi-percent text-primary'],
-              ['Female %', cards.femalePct + '%', 'bi-percent text-danger'],
-              ['Total Exams', cards.totalExams, 'bi-journal-check text-warning'],
-              ['Published Exams', cards.completedExams, 'bi-check-circle text-success'],
-              ['Active Exams', cards.pendingExams, 'bi-play-circle text-info']
-            ].map(([label, value, icon]) => (
-              <div className="col-sm-6 col-xl-3" key={label}>
-                <div className="surface metric-card p-3 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div className="text-secondary small">{label}</div>
-                    <div className="fs-2 fw-bold">{value ?? 0}</div>
+              { label: 'Total Students', value: cards.totalStudents, icon: 'bi-people', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
+              { label: 'Male Students', value: cards.maleCount, icon: 'bi-gender-male', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
+              { label: 'Female Students', value: cards.femaleCount, icon: 'bi-gender-female', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)', color: '#c62828' }
+            ].map((stat) => (
+              <div className="col-12 col-sm-6 col-xl-4" key={stat.label}>
+                <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
+                  <div className="card-body d-flex align-items-center gap-3 p-3">
+                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm"
+                      style={{ width: 56, height: 56, minWidth: 56 }}>
+                      <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
+                    </div>
+                    <div>
+                      <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value ?? 0}</div>
+                      <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
+                    </div>
                   </div>
-                  <i className={`bi ${icon} fs-3`} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Row 2: Exam Statistics Cards */}
+          <div className="row g-3 mb-4">
+            {[
+              { label: 'Total Exams', value: cards.totalExams, icon: 'bi-journal-check', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
+              { label: 'Published Exams', value: cards.completedExams, icon: 'bi-check-circle', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
+              { label: 'Active Exams', value: cards.pendingExams, icon: 'bi-play-circle', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', color: '#e65100' }
+            ].map((stat) => (
+              <div className="col-12 col-sm-6 col-xl-4" key={stat.label}>
+                <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
+                  <div className="card-body d-flex align-items-center gap-3 p-3">
+                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm"
+                      style={{ width: 56, height: 56, minWidth: 56 }}>
+                      <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
+                    </div>
+                    <div>
+                      <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value ?? 0}</div>
+                      <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -131,11 +195,13 @@ export const DashboardPage = () => {
                 {cards.totalStudents ? (
                   <div className="d-flex flex-column align-items-center">
                     <div style={{ maxWidth: 220 }}>
-                      <Doughnut data={genderChartData} />
+                      <Doughnut data={genderChartData} options={genderChartOptions} />
                     </div>
-                    <div className="mt-3 small text-secondary">
-                      {cards.maleCount} Male &bull; {cards.femaleCount} Female
-                    </div>
+                    {/* <div className="mt-2 small text-secondary text-center fw-bold">
+                      <span style={{ color: '#2454d6' }}>Male : {cards.malePct}%</span>
+                      &nbsp;&bull;&nbsp;
+                      <span style={{ color: '#0f8b8d' }}>Female : {cards.femalePct}%</span>
+                    </div> */}
                   </div>
                 ) : <div className="text-secondary">No student data available.</div>}
               </div>
@@ -148,11 +214,11 @@ export const DashboardPage = () => {
                 {examStatus.length ? (
                   <div className="d-flex flex-column align-items-center">
                     <div style={{ maxWidth: 220 }}>
-                      <Doughnut data={examStatusChartData} />
+                      <Doughnut data={examStatusChartData} options={examStatusChartOptions} />
                     </div>
-                    <div className="mt-3 small text-secondary">
+                    {/* <div className="mt-3 small text-secondary">
                       {examStatus.map((e) => `${e.status}: ${e.count}`).join(' • ')}
-                    </div>
+                    </div> */}
                   </div>
                 ) : <div className="text-secondary">No exam data available.</div>}
               </div>

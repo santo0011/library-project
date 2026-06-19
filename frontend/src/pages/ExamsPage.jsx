@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
+import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { ExamFormModal } from '../components/exams/ExamFormModal.jsx';
 import { usePermission } from '../hooks/usePermission.js';
 import { examService } from '../services/examService.js';
 import { PERMISSIONS } from '../utils/constants.js';
+import { confirmAction, showToast } from '../utils/sweetAlerts.js';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../components/common/Toast.jsx';
 
@@ -14,7 +15,6 @@ export const ExamsPage = () => {
   const [filters, setFilters] = useState({ search: '', status: '', page: 1 });
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [deleting, setDeleting] = useState(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -50,25 +50,32 @@ export const ExamsPage = () => {
     }
   };
 
-  const remove = async () => {
+  const remove = async (exam) => {
+    const result = await confirmAction({
+      title: 'Delete Exam',
+      text: `Delete "${exam.name}"? This action cannot be undone.`,
+      confirmButtonText: 'Delete'
+    });
+    if (!result.isConfirmed) return;
+
     setBusy(true);
     try {
-      await examService.remove(deleting._id);
-      setDeleting(null);
+      await examService.remove(exam._id);
       load();
+      showToast('success', 'Exam deleted successfully.');
     } catch (err) {
       const message = err.response?.data?.message || '';
       if (message.includes('students have already participated')) {
-        toast('Delete Not Allowed', 'This exam cannot be deleted because one or more students have already participated in it.');
+        showToast('error', 'This exam cannot be deleted because one or more students have already participated in it.');
       } else {
-        toast('Error', message || 'Failed to delete exam');
+        showToast('error', message || 'Failed to delete exam');
       }
     } finally {
       setBusy(false);
     }
   };
 
-  const formatDate = (date) => date ? new Date(date).toLocaleString() : '-';
+  const formatDate = (date) => date ? moment(date).format('DD MMM YYYY, h:mm A') : '-';
 
   return (
     <>
@@ -155,7 +162,8 @@ export const ExamsPage = () => {
                         <button
                           className="btn btn-sm btn-outline-danger"
                           type="button"
-                          onClick={() => setDeleting(exam)}
+                          onClick={() => remove(exam)}
+                          disabled={busy}
                           title="Delete"
                         >
                           <i className="bi bi-trash" />
@@ -169,16 +177,32 @@ export const ExamsPage = () => {
 
           </table>
         </div>
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="small text-secondary">Page {exams.page} of {exams.pages}</span>
-          <div className="btn-group">
-            <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
-            <button className="btn btn-outline-secondary" disabled={filters.page >= exams.pages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}>Next</button>
-          </div>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span className="small text-secondary">Showing {(exams.items.length > 0 ? ((exams.page - 1) * 10 + 1) : 0)}–{Math.min(exams.page * 10, exams.total)} of {exams.total}</span>
+          {exams.pages > 1 && (
+            <div className="btn-group btn-group-sm">
+              <button className="btn btn-outline-secondary" disabled={filters.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>Previous</button>
+              {(() => {
+                const pages = [];
+                const total = exams.pages;
+                const current = filters.page;
+                const range = 2;
+                let start = Math.max(1, current - range);
+                let end = Math.min(total, current + range);
+                if (start > 1) { pages.push(1); if (start > 2) pages.push('...'); }
+                for (let i = start; i <= end; i++) pages.push(i);
+                if (end < total) { if (end < total - 1) pages.push('...'); pages.push(total); }
+                return pages.map((p, i) =>
+                  p === '...' ? <span key={`e${i}`} className="btn btn-outline-secondary border-0 px-1" style={{ cursor: 'default', fontSize: 12 }}>…</span>
+                    : <button key={p} className={`btn btn-outline-secondary ${current === p ? 'active' : ''}`} onClick={() => setFilters({ ...filters, page: p })}>{p}</button>
+                );
+              })()}
+              <button className="btn btn-outline-secondary" disabled={filters.page >= exams.pages} onClick={() => setFilters({ ...filters, page: exams.page + 1 })}>Next</button>
+            </div>
+          )}
         </div>
       </div>
       <ExamFormModal show={Boolean(editing)} exam={editing?._id ? editing : null} onClose={() => setEditing(null)} onSubmit={save} busy={busy} />
-      <ConfirmModal show={Boolean(deleting)} title="Delete exam" message={`Delete "${deleting?.name}"? This action cannot be undone.`} onCancel={() => setDeleting(null)} onConfirm={remove} busy={busy} />
     </>
   );
 };
