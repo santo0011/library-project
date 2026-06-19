@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
+import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { ExamFormModal } from '../components/exams/ExamFormModal.jsx';
 import { usePermission } from '../hooks/usePermission.js';
 import { examService } from '../services/examService.js';
 import { PERMISSIONS } from '../utils/constants.js';
+import { confirmAction, showToast } from '../utils/sweetAlerts.js';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../components/common/Toast.jsx';
 
@@ -14,7 +15,6 @@ export const ExamsPage = () => {
   const [filters, setFilters] = useState({ search: '', status: '', page: 1 });
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [deleting, setDeleting] = useState(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -50,25 +50,32 @@ export const ExamsPage = () => {
     }
   };
 
-  const remove = async () => {
+  const remove = async (exam) => {
+    const result = await confirmAction({
+      title: 'Delete Exam',
+      text: `Delete "${exam.name}"? This action cannot be undone.`,
+      confirmButtonText: 'Delete'
+    });
+    if (!result.isConfirmed) return;
+
     setBusy(true);
     try {
-      await examService.remove(deleting._id);
-      setDeleting(null);
+      await examService.remove(exam._id);
       load();
+      showToast('success', 'Exam deleted successfully.');
     } catch (err) {
       const message = err.response?.data?.message || '';
       if (message.includes('students have already participated')) {
-        toast('Delete Not Allowed', 'This exam cannot be deleted because one or more students have already participated in it.');
+        showToast('error', 'This exam cannot be deleted because one or more students have already participated in it.');
       } else {
-        toast('Error', message || 'Failed to delete exam');
+        showToast('error', message || 'Failed to delete exam');
       }
     } finally {
       setBusy(false);
     }
   };
 
-  const formatDate = (date) => date ? new Date(date).toLocaleString() : '-';
+  const formatDate = (date) => date ? moment(date).format('DD MMM YYYY, h:mm A') : '-';
 
   return (
     <>
@@ -155,7 +162,8 @@ export const ExamsPage = () => {
                         <button
                           className="btn btn-sm btn-outline-danger"
                           type="button"
-                          onClick={() => setDeleting(exam)}
+                          onClick={() => remove(exam)}
+                          disabled={busy}
                           title="Delete"
                         >
                           <i className="bi bi-trash" />
@@ -195,7 +203,6 @@ export const ExamsPage = () => {
         </div>
       </div>
       <ExamFormModal show={Boolean(editing)} exam={editing?._id ? editing : null} onClose={() => setEditing(null)} onSubmit={save} busy={busy} />
-      <ConfirmModal show={Boolean(deleting)} title="Delete exam" message={`Delete "${deleting?.name}"? This action cannot be undone.`} onCancel={() => setDeleting(null)} onConfirm={remove} busy={busy} />
     </>
   );
 };

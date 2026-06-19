@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { loginUser, logout } from '../redux/slices/authSlice.js';
-import { useToast } from '../components/common/Toast.jsx';
+import { showAuthToast } from '../utils/authAlerts.js';
 
 export const LoginPage = () => {
   const dispatch = useDispatch();
@@ -12,7 +12,6 @@ export const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '', portal: 'admin' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
-  const toast = useToast();
 
   useEffect(() => {
     dispatch(logout());
@@ -32,9 +31,12 @@ export const LoginPage = () => {
     const redirectPath = form.portal === 'student' ? '/student/dashboard' : '/dashboard';
     const result = await dispatch(loginUser(form));
     if (loginUser.fulfilled.match(result)) {
+      showAuthToast('success', 'Login successful.');
       navigate(location.state?.from?.pathname || redirectPath, { replace: true });
     } else {
-      setApiError(result.payload || 'Unable to login');
+      const message = result.payload || 'Unable to login';
+      setApiError(message);
+      showAuthToast('error', message);
     }
   };
 

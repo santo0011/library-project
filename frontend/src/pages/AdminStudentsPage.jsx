@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
-import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { api } from '../services/api.js';
 import { Modal } from '../components/common/Modal.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { AdminStudentDetailPage } from './AdminStudentDetailPage.jsx';
+import { confirmAction, showToast } from '../utils/sweetAlerts.js';
 
 const blankStudent = {
   name: '', email: '', password: '', mobile: '', gender: 'Male', dateOfBirth: ''
@@ -21,7 +22,6 @@ export const AdminStudentsPage = () => {
   const [createBusy, setCreateBusy] = useState(false);
   const [createSuccess, setCreateSuccess] = useState(null);
   const [editing, setEditing] = useState(null);
-  const [toggling, setToggling] = useState(null);
   const [busy, setBusy] = useState(false);
   const [drawerStudentId, setDrawerStudentId] = useState(null);
 
@@ -89,12 +89,24 @@ export const AdminStudentsPage = () => {
     }
   };
 
-  const toggleStatus = async () => {
+  const toggleStatus = async (student) => {
+    const isActive = student.status === 'active';
+    const action = isActive ? 'deactivate' : 'activate';
+    const result = await confirmAction({
+      title: isActive ? 'Deactivate Student' : 'Activate Student',
+      text: `Are you sure you want to ${action} ${student.name}?`,
+      confirmButtonText: isActive ? 'Deactivate' : 'Activate',
+      confirmButtonColor: isActive ? '#ffc107' : '#198754'
+    });
+    if (!result.isConfirmed) return;
+
     setBusy(true);
     try {
-      await api.patch(`/students/${toggling._id}/toggle-status`);
-      setToggling(null);
+      await api.patch(`/students/${student._id}/toggle-status`);
       load();
+      showToast('success', `Student ${isActive ? 'deactivated' : 'activated'} successfully.`);
+    } catch (err) {
+      showToast('error', err.response?.data?.message || `Failed to ${action} student`);
     } finally {
       setBusy(false);
     }
@@ -149,11 +161,11 @@ export const AdminStudentsPage = () => {
                   <td>{s.mobile || '-'}</td>
                   <td>{s.gender || '-'}</td>
                   <td><StatusBadge status={s.status} /></td>
-                  <td>{new Date(s.createdAt).toLocaleDateString()}</td>
+                  <td>{s.createdAt ? moment(s.createdAt).format('DD, MMM, YYYY') : '-'}</td>
                   <td className="text-end">
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setEditing({ ...s })} title="Edit"><i className="bi bi-pencil" /></button>
                     <button className="btn btn-sm btn-outline-info me-1" onClick={() => setDrawerStudentId(s._id)} title="View Profile"><i className="bi bi-eye" /></button>
-                    <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => setToggling(s)} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
+                    <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => toggleStatus(s)} disabled={busy} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
                       <i className={`bi ${s.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`} />
                     </button>
                   </td>
@@ -280,14 +292,12 @@ export const AdminStudentsPage = () => {
         </Modal>
       )}
 
-      <ConfirmModal show={Boolean(toggling)} title={toggling?.status === 'active' ? 'Deactivate Student' : 'Activate Student'} message={`Are you sure you want to ${toggling?.status === 'active' ? 'deactivate' : 'activate'} ${toggling?.name}?`} onCancel={() => setToggling(null)} onConfirm={toggleStatus} busy={busy} />
-
       {/* Student Details Drawer */}
       <Drawer
         show={Boolean(drawerStudentId)}
         title="Student Details"
         onClose={() => setDrawerStudentId(null)}
-        width="750px"
+        width="850px"
       >
         {drawerStudentId && <AdminStudentDetailPage id={drawerStudentId} onClose={() => setDrawerStudentId(null)} />}
       </Drawer>

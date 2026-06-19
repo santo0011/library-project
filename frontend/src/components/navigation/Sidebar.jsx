@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logoutUser } from '../../redux/slices/authSlice.js';
-import { useToast } from '../common/Toast.jsx';
+import { confirmLogout, showAuthToast } from '../../utils/authAlerts.js';
 
 const items = [
   { to: '/dashboard', icon: 'bi-speedometer2', label: 'Dashboard' },
@@ -14,15 +13,15 @@ const items = [
 export const Sidebar = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const toast = useToast();
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleLogout = async () => {
-    setShowConfirm(false);
+    const result = await confirmLogout();
+    if (!result.isConfirmed) return;
+
     await dispatch(logoutUser());
     onClose();
-    toast('Success', 'Logged out successfully.', 'success');
-    setTimeout(() => navigate('/login'), 300);
+    showAuthToast('success', 'Logged out successfully.');
+    navigate('/login');
   };
 
   return (
@@ -47,30 +46,12 @@ export const Sidebar = ({ open, onClose }) => {
               <span>{item.label}</span>
             </NavLink>
           ))}
-          <button className="sidebar-link sidebar-button" type="button" onClick={() => setShowConfirm(true)}>
+          <button className="sidebar-link sidebar-button" type="button" onClick={handleLogout}>
             <i className="bi bi-box-arrow-right" />
             <span>Logout</span>
           </button>
         </nav>
       </aside>
-
-      <div className={`modal fade ${showConfirm ? 'show d-block' : ''}`} tabIndex="-1" style={{ backgroundColor: showConfirm ? 'rgba(0,0,0,0.5)' : 'transparent' }} onClick={() => setShowConfirm(false)}>
-        <div className="modal-dialog modal-dialog-centered modal-sm" onClick={(event) => event.stopPropagation()}>
-          <div className="modal-content">
-            <div className="modal-header border-0 pb-0">
-              <h5 className="modal-title">Confirm Logout</h5>
-              <button type="button" className="btn-close" onClick={() => setShowConfirm(false)} aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-              <p className="mb-0">Are you sure you want to logout?</p>
-            </div>
-            <div className="modal-footer border-0">
-              <button type="button" className="btn btn-secondary" onClick={() => setShowConfirm(false)}>Cancel</button>
-              <button type="button" className="btn btn-danger" onClick={handleLogout}>Logout</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 };

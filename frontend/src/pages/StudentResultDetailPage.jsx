@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
 
@@ -95,7 +96,7 @@ export const StudentResultDetailPage = () => {
                         {r.passed ? 'Pass' : 'Fail'}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</td>
+                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</td>
                     <td className="text-end">
                       <button className="btn btn-sm rounded-pill text-white px-3"
                         style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
@@ -173,7 +174,7 @@ export const StudentResultDetailPage = () => {
           <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
             <div className="card-body p-3 text-center">
               <small className="text-danger fw-medium">Date</small>
-              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</div>
+              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
             </div>
           </div>
         </div>

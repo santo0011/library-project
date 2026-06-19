@@ -13,7 +13,7 @@ class DashboardService {
       User.countDocuments({ role: Roles.STUDENT, gender: 'Female' }),
       Exam.countDocuments(),
       Exam.countDocuments({ status: 'published' }),
-      Exam.countDocuments({ isActive: true, status: 'published' }),
+      Exam.countDocuments({ isActive: true, status: 'published', startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }),
       Exam.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       ExamSubmission.aggregate([
         { $match: { status: 'submitted' } },
