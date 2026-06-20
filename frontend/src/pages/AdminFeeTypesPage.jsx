@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal } from '../components/common/Modal.jsx';
+import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { feeService } from '../services/feeService.js';
 import { showToast, confirmAction } from '../utils/sweetAlerts.js';
@@ -224,42 +224,39 @@ export const AdminFeeTypesPage = () => {
         </div>
       </div>
 
-      {editingType && (
-        <Modal
-          show={true}
-          title="Edit Fee Type"
-          onClose={() => setEditingType(null)}
-          footer={
-            <>
-              <button className="btn btn-outline-secondary" type="button" onClick={() => setEditingType(null)}>Cancel</button>
-              <button className="btn btn-primary" form="edit-fee-type-form" type="submit" disabled={busy}>Save</button>
-            </>
-          }
-        >
-          <form id="edit-fee-type-form" onSubmit={updateFeeType}>
-            <div className="row g-3">
-              <div className="col-12">
-                <label className="form-label">Name</label>
-                <input className="form-control" value={editTypeForm.name} onChange={(e) => setEditTypeForm({ ...editTypeForm, name: e.target.value })} />
-              </div>
-              <div className="col-12">
-                <label className="form-label">Amount</label>
-                <input type="number" min="0" className="form-control" value={editTypeForm.amount} onChange={(e) => setEditTypeForm({ ...editTypeForm, amount: e.target.value })} />
-              </div>
-              <div className="col-12">
-                <label className="form-label">Description</label>
-                <textarea className="form-control" rows="3" value={editTypeForm.description} onChange={(e) => setEditTypeForm({ ...editTypeForm, description: e.target.value })} />
-              </div>
-              <div className="col-12">
-                <div className="form-check">
-                  <input id="fee-type-active" className="form-check-input" type="checkbox" checked={editTypeForm.isActive} onChange={(e) => setEditTypeForm({ ...editTypeForm, isActive: e.target.checked })} />
-                  <label className="form-check-label" htmlFor="fee-type-active">Active</label>
-                </div>
+      <Drawer
+        show={Boolean(editingType)}
+        title="Edit Fee Type"
+        onClose={() => setEditingType(null)}
+        width="450px"
+      >
+        <form id="edit-fee-type-form" onSubmit={updateFeeType}>
+          <div className="row g-3">
+            <div className="col-12">
+              <label className="form-label">Name</label>
+              <input className="form-control" value={editTypeForm.name} onChange={(e) => setEditTypeForm({ ...editTypeForm, name: e.target.value })} />
+            </div>
+            <div className="col-12">
+              <label className="form-label">Amount</label>
+              <input type="number" min="0" className="form-control" value={editTypeForm.amount} onChange={(e) => setEditTypeForm({ ...editTypeForm, amount: e.target.value })} />
+            </div>
+            <div className="col-12">
+              <label className="form-label">Description</label>
+              <textarea className="form-control" rows="3" value={editTypeForm.description} onChange={(e) => setEditTypeForm({ ...editTypeForm, description: e.target.value })} />
+            </div>
+            <div className="col-12">
+              <div className="form-check">
+                <input id="fee-type-active" className="form-check-input" type="checkbox" checked={editTypeForm.isActive} onChange={(e) => setEditTypeForm({ ...editTypeForm, isActive: e.target.checked })} />
+                <label className="form-check-label" htmlFor="fee-type-active">Active</label>
               </div>
             </div>
-          </form>
-        </Modal>
-      )}
+          </div>
+          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <button className="btn btn-outline-secondary" type="button" onClick={() => setEditingType(null)}>Cancel</button>
+            <button className="btn btn-primary" type="submit" disabled={busy}>{busy ? 'Saving...' : 'Save'}</button>
+          </div>
+        </form>
+      </Drawer>
     </>
   );
 };

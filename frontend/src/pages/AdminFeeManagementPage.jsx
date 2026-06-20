@@ -433,7 +433,7 @@ export const AdminFeeManagementPage = () => {
         show={Boolean(selected)}
         title={`${selected?.student?.name || 'Student'} Fee Details`}
         onClose={closeDrawer}
-        width="850px"
+        width="750px"
       >
         {selected && (
           <>
