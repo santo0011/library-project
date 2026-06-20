@@ -7,8 +7,15 @@ class FeeTypeRepository extends BaseRepository {
     super(FeeType);
   }
 
-  async list({ activeOnly = false, page, limit, search = '' } = {}) {
-    const filter = activeOnly ? { isActive: true } : {};
+  async list({ activeOnly, statusFilter, page, limit, search = '' } = {}) {
+    let filter = {};
+    if (statusFilter === 'active') {
+      filter.isActive = true;
+    } else if (statusFilter === 'inactive') {
+      filter.isActive = false;
+    } else if (activeOnly) {
+      filter.isActive = true;
+    }
     const normalizedSearch = search.trim();
 
     if (normalizedSearch) {

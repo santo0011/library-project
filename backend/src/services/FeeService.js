@@ -79,6 +79,7 @@ class FeeService {
   async listFeeTypes(query = {}) {
     return feeTypeRepository.list({
       activeOnly: query.activeOnly === 'true',
+      statusFilter: query.statusFilter || '',
       page: query.page,
       limit: query.limit,
       search: query.search || ''
@@ -100,6 +101,23 @@ class FeeService {
       description: payload.description,
       isActive: payload.isActive ?? true
     });
+  }
+
+  async toggleFeeTypeStatus(id, isActive) {
+    const feeType = await feeTypeRepository.findById(id);
+    if (!feeType) throw new AppError('Fee type not found', StatusCodes.NOT_FOUND);
+
+    feeType.isActive = isActive;
+    await feeType.save();
+    return feeType;
+  }
+
+  async bulkToggleFeeTypeStatus(ids, isActive) {
+    const result = await feeTypeRepository.model.updateMany(
+      { _id: { $in: ids } },
+      { $set: { isActive } }
+    );
+    return { modifiedCount: result.modifiedCount };
   }
 
   async deleteFeeType(id) {

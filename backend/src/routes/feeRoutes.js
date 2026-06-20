@@ -21,6 +21,8 @@ feeRoutes.get('/types', authorizePermissions(Permissions.FEES_READ), feeControll
 feeRoutes.post('/types', authorizePermissions(Permissions.FEES_WRITE), createFeeTypeValidation, validateRequest, feeController.createFeeType);
 feeRoutes.patch('/types/:id', authorizePermissions(Permissions.FEES_WRITE), updateFeeTypeValidation, validateRequest, feeController.updateFeeType);
 feeRoutes.delete('/types/:id', authorizePermissions(Permissions.FEES_WRITE), feeController.deleteFeeType);
+feeRoutes.patch('/types/:id/toggle-status', authorizePermissions(Permissions.FEES_WRITE), feeController.toggleFeeTypeStatus);
+feeRoutes.post('/types/bulk-toggle-status', authorizePermissions(Permissions.FEES_WRITE), feeController.bulkToggleFeeTypeStatus);
 feeRoutes.post('/assign', authorizePermissions(Permissions.FEES_WRITE), bulkAssignFeeValidation, validateRequest, feeController.bulkAssign);
 feeRoutes.post('/remove', authorizePermissions(Permissions.FEES_WRITE), bulkRemoveFeeValidation, validateRequest, feeController.bulkRemove);
 feeRoutes.get('/', authorizePermissions(Permissions.FEES_READ), feeController.list);

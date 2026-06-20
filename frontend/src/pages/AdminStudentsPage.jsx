@@ -251,7 +251,7 @@ export const AdminStudentsPage = () => {
         show={Boolean(drawerStudentId)}
         title="Student Details"
         onClose={() => setDrawerStudentId(null)}
-        width="750px"
+        width="800px"
       >
         {drawerStudentId && <AdminStudentDetailPage id={drawerStudentId} onClose={() => setDrawerStudentId(null)} />}
       </Drawer>

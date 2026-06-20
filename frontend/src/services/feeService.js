@@ -36,6 +36,16 @@ export const feeService = {
     return data.data;
   },
 
+  async toggleFeeTypeStatus(id, isActive) {
+    const { data } = await api.patch(`/fees/types/${id}/toggle-status`, { isActive });
+    return data.data;
+  },
+
+  async bulkToggleFeeTypeStatus(ids, isActive) {
+    const { data } = await api.post('/fees/types/bulk-toggle-status', { ids, isActive });
+    return data.data;
+  },
+
   async bulkAssign(payload) {
     const { data } = await api.post('/fees/assign', payload);
     return data.data;

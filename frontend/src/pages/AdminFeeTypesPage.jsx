@@ -16,18 +16,22 @@ const money = (value) => new Intl.NumberFormat('en-IN', {
 
 export const AdminFeeTypesPage = () => {
   const [feeTypes, setFeeTypes] = useState({ items: [], total: 0, page: 1, pages: 1, limit: 10 });
-  const [filters, setFilters] = useState({ search: '', page: 1, limit: 10 });
+  const [filters, setFilters] = useState({ search: '', statusFilter: '', page: 1, limit: 10 });
   const [typeForm, setTypeForm] = useState(blankType);
   const [editingType, setEditingType] = useState(null);
   const [editTypeForm, setEditTypeForm] = useState(blankType);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const loadFeeTypes = () => {
     setLoading(true);
     feeService
       .listFeeTypes(filters)
-      .then(setFeeTypes)
+      .then((data) => {
+        setFeeTypes(data);
+        setSelectedIds([]);
+      })
       .catch((err) => showToast('error', err.response?.data?.message || 'Unable to load fee types'))
       .finally(() => setLoading(false));
   };
@@ -101,6 +105,75 @@ export const AdminFeeTypesPage = () => {
     }
   };
 
+  const handleToggleStatus = async (type) => {
+    const newStatus = !type.isActive;
+    const actionLabel = newStatus ? 'Activate' : 'Deactivate';
+
+    const result = await confirmAction({
+      title: `${actionLabel} Fee Type?`,
+      text: `Are you sure you want to ${actionLabel.toLowerCase()} "${type.name}"?`,
+      confirmButtonText: actionLabel,
+      confirmButtonColor: newStatus ? '#198754' : '#ffc107'
+    });
+
+    if (!result.isConfirmed) return;
+
+    setBusy(true);
+    try {
+      await feeService.toggleFeeTypeStatus(type._id, newStatus);
+      showToast('success', `Fee type ${actionLabel.toLowerCase()}d successfully.`);
+      loadFeeTypes();
+    } catch (err) {
+      showToast('error', err.response?.data?.message || `Unable to ${actionLabel.toLowerCase()} fee type`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleBulkToggleStatus = async (newStatus) => {
+    const actionLabel = newStatus ? 'Activate' : 'Deactivate';
+    const selectedCount = selectedIds.length;
+
+    if (!selectedCount) {
+      showToast('error', 'Select at least one fee type.');
+      return;
+    }
+
+    const result = await confirmAction({
+      title: `${actionLabel} Selected Fee Types?`,
+      text: `Are you sure you want to ${actionLabel.toLowerCase()} ${selectedCount} selected fee type(s)?`,
+      confirmButtonText: actionLabel,
+      confirmButtonColor: newStatus ? '#198754' : '#ffc107'
+    });
+
+    if (!result.isConfirmed) return;
+
+    setBusy(true);
+    try {
+      const response = await feeService.bulkToggleFeeTypeStatus(selectedIds, newStatus);
+      showToast('success', `${response.modifiedCount} fee type(s) ${actionLabel.toLowerCase()}d successfully.`);
+      loadFeeTypes();
+    } catch (err) {
+      showToast('error', err.response?.data?.message || `Unable to ${actionLabel.toLowerCase()} fee types`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === feeTypes.items.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(feeTypes.items.map((t) => t._id));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
   const updateFeeType = async (event) => {
     event.preventDefault();
     if (!validateForm(editTypeForm)) return;
@@ -124,6 +197,7 @@ export const AdminFeeTypesPage = () => {
   const showingFrom = feeTypes.items.length ? (feeTypes.page - 1) * feeTypes.limit + 1 : 0;
   const showingTo = Math.min(feeTypes.page * feeTypes.limit, feeTypes.total);
   const activeCount = feeTypes.items.filter((type) => type.isActive).length;
+  const allSelected = feeTypes.items.length > 0 && selectedIds.length === feeTypes.items.length;
 
   return (
     <>
@@ -154,7 +228,7 @@ export const AdminFeeTypesPage = () => {
 
       <div className="surface p-3">
         <div className="row g-2 align-items-end mb-3">
-          <div className="col-lg-5 col-md-7">
+          <div className="col-lg-3 col-md-5">
             <label className="form-label">Search Fee Types</label>
             <input
               className="form-control"
@@ -163,8 +237,40 @@ export const AdminFeeTypesPage = () => {
               onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
             />
           </div>
+          <div className="col-lg-2 col-md-3">
+            <label className="form-label">Status Filter</label>
+            <select
+              className="form-select"
+              value={filters.statusFilter}
+              onChange={(e) => setFilters({ ...filters, statusFilter: e.target.value, page: 1 })}
+            >
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
           <div className="col-lg-7 col-md-5 text-md-end">
-            <span className="small text-secondary">{activeCount} active on this page</span>
+            <span className="small text-secondary me-3">{activeCount} active on this page</span>
+            {selectedIds.length > 0 && (
+              <>
+                <button
+                  className="btn btn-sm btn-success me-1"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => handleBulkToggleStatus(true)}
+                >
+                  <i className="bi bi-check-circle me-1" />Activate Selected
+                </button>
+                <button
+                  className="btn btn-sm btn-warning me-1"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => handleBulkToggleStatus(false)}
+                >
+                  <i className="bi bi-pause-circle me-1" />Deactivate Selected
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -172,6 +278,15 @@ export const AdminFeeTypesPage = () => {
           <table className="table align-middle">
             <thead>
               <tr>
+                <th style={{ width: 40 }}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleSelectAll}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </th>
                 <th>Name</th>
                 <th>Amount</th>
                 <th>Description</th>
@@ -182,11 +297,20 @@ export const AdminFeeTypesPage = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6">Loading fee types...</td></tr>
+                <tr><td colSpan="7">Loading fee types...</td></tr>
               ) : feeTypes.items.length === 0 ? (
-                <tr><td colSpan="6" className="text-center text-secondary">No fee types found.</td></tr>
+                <tr><td colSpan="7" className="text-center text-secondary">No fee types found.</td></tr>
               ) : feeTypes.items.map((type) => (
-                <tr key={type._id}>
+                <tr key={type._id} className={type.isActive ? '' : 'table-active'}>
+                  <td>
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={selectedIds.includes(type._id)}
+                      onChange={() => toggleSelectOne(type._id)}
+                      style={{ border: "0.6px solid #585454", cursor: "pointer" }}
+                    />
+                  </td>
                   <td className="fw-semibold">{type.name}</td>
                   <td>{money(type.amount)}</td>
                   <td className="text-secondary">{type.description || '-'}</td>
@@ -197,12 +321,37 @@ export const AdminFeeTypesPage = () => {
                     </span>
                   </td>
                   <td className="text-end">
-                    <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => openEditType(type)} disabled={busy}>
+                    <button
+                      className="btn btn-sm btn-outline-primary me-1"
+                      type="button"
+                      onClick={() => openEditType(type)}
+                      disabled={busy}
+                      title="Edit"
+                    >
                       <i className="bi bi-pencil me-1" />Edit
                     </button>
-                    <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDeleteFeeType(type)} disabled={busy}>
+                    <button
+                      className="btn btn-sm btn-outline-danger me-1"
+                      type="button"
+                      onClick={() => handleDeleteFeeType(type)}
+                      disabled={busy}
+                      title="Delete"
+                    >
                       <i className="bi bi-trash me-1" />Delete
                     </button>
+
+                    {/* <button
+                      className={`btn btn-sm ${type.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                      type="button"
+                      onClick={() => handleToggleStatus(type)}
+                      disabled={busy}
+                      title={type.isActive ? 'Deactivate' : 'Activate'}
+                    >
+                      <i className={`bi ${type.isActive ? 'bi-pause-circle' : 'bi-play-circle'} me-1`} />
+                      {type.isActive ? 'Deactivate' : 'Activate'}
+                    </button> */}
+
+
                   </td>
                 </tr>
               ))}

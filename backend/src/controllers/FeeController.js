@@ -33,6 +33,16 @@ class FeeController {
     res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee type deleted successfully' });
   });
 
+  toggleFeeTypeStatus = asyncHandler(async (req, res) => {
+    const data = await feeService.toggleFeeTypeStatus(req.params.id, req.body.isActive);
+    res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee type status updated successfully' });
+  });
+
+  bulkToggleFeeTypeStatus = asyncHandler(async (req, res) => {
+    const data = await feeService.bulkToggleFeeTypeStatus(req.body.ids, req.body.isActive);
+    res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee types status updated successfully' });
+  });
+
   updateFeeType = asyncHandler(async (req, res) => {
     const data = await feeService.updateFeeType(req.params.id, req.body);
     res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee type updated successfully' });
