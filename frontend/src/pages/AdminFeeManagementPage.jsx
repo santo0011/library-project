@@ -124,42 +124,43 @@ export const AdminFeeManagementPage = () => {
     || selectedAssignedFees.find((fee) => fee.feeType === drawerFeeTypeId);
 
   const assignedHistory = useMemo(() => {
-    if (!drawerFeeTypeId) return [];
+    if (!selected) return [];
 
-    return historyRecords
-      .flatMap((row) => (row.assignedFees || [])
-        .filter((fee) => fee.feeType === drawerFeeTypeId)
-        .map((assignedFee) => {
-          const paidAmount = (row.payments || [])
-            .filter((payment) => payment.feeType === drawerFeeTypeId)
-            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const studentFees = [...(selected.assignedFees || [])];
+    let result = studentFees.map((fee) => {
+      const paidAmount = (selected.payments || [])
+        .filter((payment) => payment.feeType === fee.feeType)
+        .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 
-          return {
-            id: assignedFee._id,
-            student: row.student,
-            assignedAt: assignedFee.assignedAt,
-            paymentStatus: paidAmount <= 0 ? 'Unpaid' : paidAmount >= Number(assignedFee.amount || 0) ? 'Paid' : 'Partial',
-            paidAmount,
-            dueAmount: Math.max(Number(assignedFee.amount || 0) - paidAmount, 0)
-          };
-        }))
-      .filter((row) => {
-        const search = assignedHistorySearch.trim().toLowerCase();
-        if (!search) return true;
-        return [row.student?.name, row.student?.studentId].some((value) => String(value || '').toLowerCase().includes(search));
-      })
-      .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
-  }, [assignedHistorySearch, drawerFeeTypeId, historyRecords]);
+      return {
+        id: fee._id,
+        feeType: fee.feeType,
+        name: fee.name,
+        amount: fee.amount,
+        assignedAt: fee.assignedAt,
+        paymentStatus: paidAmount <= 0 ? 'Unpaid' : paidAmount >= Number(fee.amount || 0) ? 'Paid' : 'Partial',
+        paidAmount,
+        dueAmount: Math.max(Number(fee.amount || 0) - paidAmount, 0)
+      };
+    });
+
+    if (assignedHistorySearch.trim()) {
+      const search = assignedHistorySearch.trim().toLowerCase();
+      result = result.filter((row) =>
+        (row.name || '').toLowerCase().includes(search)
+      );
+    }
+
+    result.sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
+    return result;
+  }, [assignedHistorySearch, selected]);
 
   const paymentHistory = useMemo(() => {
-    if (!drawerFeeTypeId) return [];
+    if (!selected) return [];
 
-    return historyRecords
-      .flatMap((row) => (row.payments || [])
-        .filter((payment) => payment.feeType === drawerFeeTypeId)
-        .map((payment) => ({ ...payment, student: row.student })))
-      .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
-  }, [drawerFeeTypeId, historyRecords]);
+    return [...(selected.payments || [])]
+      .sort((a, b) => new Date(b.createdAt || b.paymentDate || 0) - new Date(a.createdAt || a.paymentDate || 0));
+  }, [selected]);
 
   const assignedHistoryPages = Math.ceil(assignedHistory.length / 10) || 1;
   const paymentHistoryPages = Math.ceil(paymentHistory.length / 10) || 1;
@@ -569,10 +570,10 @@ export const AdminFeeManagementPage = () => {
                 <>
                   <div className="row g-2 align-items-end mb-3">
                     <div className="col-md-6">
-                      <label className="form-label">Search Assigned Students</label>
+                      <label className="form-label">Search Fee Types</label>
                       <input
                         className="form-control"
-                        placeholder="Student name or ID"
+                        placeholder="Fee type name"
                         value={assignedHistorySearch}
                         onChange={(e) => {
                           setAssignedHistorySearch(e.target.value);
@@ -583,7 +584,7 @@ export const AdminFeeManagementPage = () => {
 
                     <div className="col-md-6 d-flex justify-content-md-end align-items-end">
                       <span className="small text-secondary">
-                        {assignedHistory.length} assigned student(s)
+                        {assignedHistory.length} assigned fee(s)
                       </span>
                     </div>
                   </div>
@@ -592,27 +593,27 @@ export const AdminFeeManagementPage = () => {
                     <table className="table align-middle fee-drawer-table">
                       <thead>
                         <tr>
-                          <th>Student Name</th>
-                          <th>Student ID</th>
-                          <th>Assigned Date</th>
-                          <th>Payment Status</th>
+                          <th style={{ width: 48 }}>SL.</th>
+                          <th>Fee Type</th>
+                          <th>Total Fee</th>
                           <th>Paid Amount</th>
                           <th>Due Amount</th>
+                          <th>Payment Status</th>
+                          <th>Assigned Date</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {historyLoading ? (
-                          <tr><td colSpan="6">Loading assigned fee history...</td></tr>
-                        ) : pagedAssignedHistory.length === 0 ? (
-                          <tr><td colSpan="6" className="text-center text-secondary">No assigned students found.</td></tr>
-                        ) : pagedAssignedHistory.map((row) => (
-                          <tr key={row.student?._id}>
-                            <td className="fw-semibold text-truncate" title={row.student?.name || '-'}>{row.student?.name || '-'}</td>
-                            <td><span className="badge text-bg-secondary text-truncate" title={row.student?.studentId || '-'}>{row.student?.studentId || '-'}</span></td>
-                            <td>{row.assignedAt ? moment(row.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
-                            <td><span className={`badge ${statusClass[row.paymentStatus] || 'bg-secondary'}`}>{row.paymentStatus}</span></td>
+                        {pagedAssignedHistory.length === 0 ? (
+                          <tr><td colSpan="7" className="text-center text-secondary">No assigned fees found.</td></tr>
+                        ) : pagedAssignedHistory.map((row, index) => (
+                          <tr key={row.id || index}>
+                            <td className="text-secondary">{(assignedHistoryPage - 1) * 10 + index + 1}</td>
+                            <td className="fw-semibold">{row.name || '-'}</td>
+                            <td>{money(row.amount)}</td>
                             <td className="text-success fw-semibold">{money(row.paidAmount)}</td>
                             <td className={row.dueAmount > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold'}>{money(row.dueAmount)}</td>
+                            <td><span className={`badge ${statusClass[row.paymentStatus] || 'bg-secondary'}`}>{row.paymentStatus}</span></td>
+                            <td>{row.assignedAt ? moment(row.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -637,23 +638,21 @@ export const AdminFeeManagementPage = () => {
                     <table className="table align-middle fee-drawer-table">
                       <thead>
                         <tr>
-                          <th>Student Name</th>
-                          <th>Student ID</th>
+                          <th style={{ width: 48 }}>SL.</th>
+                          <th>Fee Type</th>
                           <th>Amount Paid</th>
                           <th>Payment Date</th>
                           <th>Payment Method</th>
-                          <th>Transaction/Reference</th>
+                          <th>Reference ID</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {historyLoading ? (
-                          <tr><td colSpan="6">Loading payment history...</td></tr>
-                        ) : pagedPaymentHistory.length === 0 ? (
+                        {pagedPaymentHistory.length === 0 ? (
                           <tr><td colSpan="6" className="text-center text-secondary">No payments found.</td></tr>
-                        ) : pagedPaymentHistory.map((payment) => (
-                          <tr key={payment._id}>
-                            <td className="fw-semibold text-truncate" title={payment.student?.name || '-'}>{payment.student?.name || '-'}</td>
-                            <td><span className="badge text-bg-secondary text-truncate" title={payment.student?.studentId || '-'}>{payment.student?.studentId || '-'}</span></td>
+                        ) : pagedPaymentHistory.map((payment, index) => (
+                          <tr key={payment._id || index}>
+                            <td className="text-secondary">{(paymentHistoryPage - 1) * 10 + index + 1}</td>
+                            <td>{payment.feeName || '-'}</td>
                             <td className="fw-semibold text-success">{money(payment.amount)}</td>
                             <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
                             <td className="text-truncate" title={payment.paymentMode || '-'}>{payment.paymentMode || '-'}</td>

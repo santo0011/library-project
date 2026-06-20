@@ -30,7 +30,7 @@ export const StudentFeesPage = () => {
   }, []);
 
   const payments = useMemo(
-    () => [...(fee?.payments || [])].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate)),
+    () => [...(fee?.payments || [])].sort((a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)),
     [fee]
   );
   const assignedFees = useMemo(() => {
@@ -107,20 +107,34 @@ export const StudentFeesPage = () => {
                 <th>Remarks</th>
               </tr>
             </thead>
+
             <tbody>
               {payments.length === 0 ? (
-                <tr><td colSpan="6" className="text-center text-secondary">No payments recorded yet.</td></tr>
-              ) : payments.map((payment) => (
-                <tr key={payment._id}>
-                  <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
-                  <td className="fw-semibold text-success">{money(payment.amount)}</td>
-                  <td>{payment.paymentMode || '-'}</td>
-                  <td>{payment.feeName || '-'}</td>
-                  <td>{payment.transactionId || '-'}</td>
-                  <td>{payment.remarks || '-'}</td>
+                <tr>
+                  <td colSpan="6" className="text-center text-secondary">
+                    No payments recorded yet.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                [...payments].reverse().map((payment) => (
+                  <tr key={payment._id}>
+                    <td>
+                      {payment.paymentDate
+                        ? moment(payment.paymentDate).format("DD, MMM, YYYY")
+                        : "-"}
+                    </td>
+                    <td className="fw-semibold text-success">
+                      {money(payment.amount)}
+                    </td>
+                    <td>{payment.paymentMode || "-"}</td>
+                    <td>{payment.feeName || "-"}</td>
+                    <td>{payment.transactionId || "-"}</td>
+                    <td>{payment.remarks || "-"}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
+
           </table>
         </div>
       </div>
