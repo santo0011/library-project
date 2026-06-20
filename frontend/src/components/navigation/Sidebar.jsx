@@ -5,8 +5,10 @@ import { confirmLogout, showAuthToast } from '../../utils/authAlerts.js';
 
 const items = [
   { to: '/dashboard', icon: 'bi-speedometer2', label: 'Dashboard' },
-  { to: '/exams', icon: 'bi-journal-text', label: 'Exams' },
   { to: '/students', icon: 'bi-people', label: 'Students' },
+  { to: '/exams', icon: 'bi-journal-text', label: 'Exams' },
+  { to: '/fee-types', icon: 'bi-tags', label: 'Fee Types' },
+  { to: '/fees', icon: 'bi-cash-coin', label: 'Fee Management' },
   { to: '/settings', icon: 'bi-sliders', label: 'Settings' }
 ];
 

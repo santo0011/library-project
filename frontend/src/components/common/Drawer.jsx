@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export const Drawer = ({ show, title, children, onClose, width = '560px' }) => {
+export const Drawer = ({ show, title, children, onClose, width = '860px' }) => {
   const drawerRef = useRef(null);
 
   useEffect(() => {

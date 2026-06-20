@@ -13,6 +13,8 @@ export const Permissions = Object.freeze({
   QUESTIONS_WRITE: 'questions:write',
   RESULTS_READ: 'results:read',
   RESULTS_WRITE: 'results:write',
+  FEES_READ: 'fees:read',
+  FEES_WRITE: 'fees:write',
   STUDENTS_READ: 'students:read',
   STUDENTS_WRITE: 'students:write'
 });
@@ -22,6 +24,7 @@ export const defaultRolePermissions = {
   [Roles.STUDENT]: [
     Permissions.DASHBOARD_READ,
     Permissions.EXAMS_READ,
-    Permissions.RESULTS_READ
+    Permissions.RESULTS_READ,
+    Permissions.FEES_READ
   ]
 };

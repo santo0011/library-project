@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Doughnut, Bar, Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
-  ArcElement,
   BarElement,
   CategoryScale,
   Chart as ChartJS,
   Legend,
   LinearScale,
-  LineElement,
-  PointElement,
   Title,
   Tooltip
 } from 'chart.js';
+import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { dashboardService } from '../services/dashboardService.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+const money = (value) => new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0
+}).format(Number(value || 0));
 
 export const DashboardPage = () => {
   const [summary, setSummary] = useState(null);
@@ -32,237 +36,155 @@ export const DashboardPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const cards = summary?.cards || {};
-  const examStatus = summary?.examsByStatus || [];
-  const passFail = summary?.passFail || [];
+  if (loading) return <div className="surface p-4">Loading dashboard...</div>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
 
-  // Gender Distribution Chart (counts)
-  const genderChartData = {
-    labels: ['Male', 'Female'],
+  const cards = summary?.cards || {};
+  const monthlyIncome = summary?.monthlyIncome || [];
+  const recentPayments = summary?.recentPayments || [];
+  const highestDue = summary?.highestDue || [];
+
+  const incomeChartData = {
+    labels: monthlyIncome.map((item) => moment(item.month, 'YYYY-MM').format('MMM YYYY')),
     datasets: [
       {
-        data: [cards.maleCount || 0, cards.femaleCount || 0],
-        backgroundColor: ['#465b96', '#0f8b8d'],
-        borderWidth: 0
+        label: 'Revenue',
+        data: monthlyIncome.map((item) => item.amount),
+        backgroundColor: '#0f8b8d',
+        borderRadius: 8,
+        maxBarThickness: 42
       }
     ]
   };
-  const genderChartOptions = {
+
+  const incomeChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            const total = cards.maleCount + cards.femaleCount;
-            const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
-            return `${context.label} : ${pct}%`;
-          }
+          label: (context) => money(context.raw)
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => money(value)
         }
       }
     }
   };
 
-  // Exams by Status Chart
-  const examStatusChartData = {
-    labels: examStatus.map(
-      (item) =>
-        item.status
-          ? item.status.charAt(0).toUpperCase() + item.status.slice(1)
-          : "Unknown"
-    ),
-    datasets: [
-      {
-        data: examStatus.map((item) => item.count),
-        backgroundColor: ["#465b96", "#0f8b8d"],
-        borderWidth: 0,
-      },
-    ],
-  };
-
-  const examStatusChartOptions = {
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const total = examStatus.reduce(
-              (sum, item) => sum + item.count,
-              0
-            );
-
-            const pct =
-              total > 0
-                ? ((context.raw / total) * 100).toFixed(1)
-                : 0;
-
-            return `${context.label} : ${pct}%`;
-          },
-        },
-      },
-    },
-  };
-
-  // Student Growth Chart
-  const growthData = summary?.studentGrowth || [];
-  const growthChartData = {
-    labels: growthData.length ? growthData.map((g) => g.month) : [],
-    datasets: [
-      {
-        label: 'New Students',
-        data: growthData.length ? growthData.map((g) => g.count) : [],
-        borderColor: '#2454d6',
-        backgroundColor: 'rgba(36, 84, 214, 0.1)',
-        fill: true,
-        tension: 0.4
-      }
-    ]
-  };
-
-  // Exam Participation Chart
-  const participationData = summary?.examParticipation || [];
-  const participationChartData = {
-    labels: participationData.length ? participationData.map((p) => p.examName || p.name) : [],
-    datasets: [
-      {
-        label: 'Participants',
-        data: participationData.length ? participationData.map((p) => p.count) : [],
-        backgroundColor: '#0f8b8d'
-      }
-    ]
-  };
+  const metrics = [
+    { label: 'Total Students', value: cards.totalStudents || 0, icon: 'bi-people', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
+    { label: 'Total Revenue', value: money(cards.totalRevenue), icon: 'bi-currency-rupee', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
+    { label: 'Total Due', value: money(cards.totalDue), icon: 'bi-exclamation-circle', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)', color: '#c62828' },
+    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', bg: 'linear-gradient(135deg, #ecfeff, #cffafe)', color: '#0891b2' },
+    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)', color: '#7b1fa2' },
+    { label: 'Active Exams', value: cards.activeExams || cards.pendingExams || 0, icon: 'bi-play-circle', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', color: '#e65100' }
+  ];
 
   return (
     <>
-      <PageHeader title="Dashboard" subtitle="Exam system overview." />
-      {loading ? (
-        <div className="surface p-4">Loading dashboard...</div>
-      ) : error ? (
-        <div className="alert alert-danger">{error}</div>
-      ) : (
-        <>
-          {/* Row 1: Student Statistics Cards */}
-          <div className="row g-3 mb-4">
-            {[
-              { label: 'Total Students', value: cards.totalStudents, icon: 'bi-people', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
-              { label: 'Male Students', value: cards.maleCount, icon: 'bi-gender-male', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
-              { label: 'Female Students', value: cards.femaleCount, icon: 'bi-gender-female', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)', color: '#c62828' }
-            ].map((stat) => (
-              <div className="col-12 col-sm-6 col-xl-4" key={stat.label}>
-                <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
-                  <div className="card-body d-flex align-items-center gap-3 p-3">
-                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm"
-                      style={{ width: 56, height: 56, minWidth: 56 }}>
-                      <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
-                    </div>
-                    <div>
-                      <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value ?? 0}</div>
-                      <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
-                    </div>
-                  </div>
+      <PageHeader title="Dashboard" subtitle="Financial and exam system overview." />
+
+      <div className="row g-3 mb-4">
+        {metrics.map((stat) => (
+          <div className="col-sm-6 col-xl-4" key={stat.label}>
+            <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
+              <div className="card-body d-flex align-items-center gap-3 p-3">
+                <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm" style={{ width: 56, height: 56, minWidth: 56 }}>
+                  <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
+                </div>
+                <div className="min-w-0">
+                  <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value}</div>
+                  <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
+        ))}
+      </div>
 
-          {/* Row 2: Exam Statistics Cards */}
-          <div className="row g-3 mb-4">
-            {[
-              { label: 'Total Exams', value: cards.totalExams, icon: 'bi-journal-check', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
-              { label: 'Published Exams', value: cards.completedExams, icon: 'bi-check-circle', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
-              { label: 'Active Exams', value: cards.pendingExams, icon: 'bi-play-circle', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', color: '#e65100' }
-            ].map((stat) => (
-              <div className="col-12 col-sm-6 col-xl-4" key={stat.label}>
-                <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
-                  <div className="card-body d-flex align-items-center gap-3 p-3">
-                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm"
-                      style={{ width: 56, height: 56, minWidth: 56 }}>
-                      <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
-                    </div>
-                    <div>
-                      <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value ?? 0}</div>
-                      <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
-                    </div>
-                  </div>
-                </div>
+      <div className="row g-4">
+        <div className="col-xl-8">
+          <div className="surface p-3 h-100">
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <h2 className="h6 fw-bold mb-1">Monthly Income</h2>
+                <small className="text-secondary">Revenue collected by payment month.</small>
               </div>
-            ))}
+              <span className="badge bg-primary">{money(cards.totalRevenue)} collected</span>
+            </div>
+            <div style={{ height: 340 }}>
+              {monthlyIncome.length ? (
+                <Bar data={incomeChartData} options={incomeChartOptions} />
+              ) : (
+                <div className="d-flex align-items-center justify-content-center h-100 text-secondary">No revenue collected yet.</div>
+              )}
+            </div>
           </div>
+        </div>
 
-          {/* Charts Row */}
-          <div className="row g-3">
-            {/* Gender Distribution Pie Chart */}
-            <div className="col-lg-4">
-              <div className="surface p-3 h-100">
-                <h2 className="h6 fw-bold mb-3">Gender Distribution</h2>
-                {cards.totalStudents ? (
-                  <div className="d-flex flex-column align-items-center">
-                    <div style={{ maxWidth: 220 }}>
-                      <Doughnut data={genderChartData} options={genderChartOptions} />
+        <div className="col-xl-4">
+          <div className="surface p-3 h-100">
+            <h2 className="h6 fw-bold mb-3">Top Due Students</h2>
+            {highestDue.length ? (
+              <div className="d-flex flex-column gap-2">
+                {highestDue.map((item) => (
+                  <div key={item._id} className="d-flex justify-content-between align-items-center p-2 rounded-3" style={{ background: 'var(--app-bg)' }}>
+                    <div>
+                      <div className="fw-semibold">{item.student?.name || 'Student'}</div>
+                      <small className="text-secondary">{item.student?.studentId || '-'}</small>
                     </div>
-                    {/* <div className="mt-2 small text-secondary text-center fw-bold">
-                      <span style={{ color: '#2454d6' }}>Male : {cards.malePct}%</span>
-                      &nbsp;&bull;&nbsp;
-                      <span style={{ color: '#0f8b8d' }}>Female : {cards.femalePct}%</span>
-                    </div> */}
+                    <div className="fw-bold text-danger">{money(item.dueAmount)}</div>
                   </div>
-                ) : <div className="text-secondary">No student data available.</div>}
+                ))}
               </div>
-            </div>
-
-            {/* Exams by Status */}
-            <div className="col-lg-4">
-              <div className="surface p-3 h-100">
-                <h2 className="h6 fw-bold mb-3">Exams by Status</h2>
-                {examStatus.length ? (
-                  <div className="d-flex flex-column align-items-center">
-                    <div style={{ maxWidth: 220 }}>
-                      <Doughnut data={examStatusChartData} options={examStatusChartOptions} />
-                    </div>
-                    {/* <div className="mt-3 small text-secondary">
-                      {examStatus.map((e) => `${e.status}: ${e.count}`).join(' • ')}
-                    </div> */}
-                  </div>
-                ) : <div className="text-secondary">No exam data available.</div>}
-              </div>
-            </div>
-
-            {/* Pass / Fail */}
-            <div className="col-lg-4">
-              <div className="surface p-3 h-100">
-                <h2 className="h6 fw-bold mb-3">Pass / Fail</h2>
-                {passFail.length ? (
-                  <div className="d-flex gap-4 align-items-center justify-content-center h-75">
-                    {passFail.map((item) => (
-                      <div key={item.label} className="text-center">
-                        <div className="fs-1 fw-bold">{item.count}</div>
-                        <div className={`small ${item.label === 'Pass' ? 'text-success' : 'text-danger'}`}>{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : <div className="text-secondary">No results yet.</div>}
-              </div>
-            </div>
-
-            {/* Student Growth Chart */}
-            {growthData.length > 0 && (
-              <div className="col-lg-6">
-                <div className="surface p-3 h-100">
-                  <h2 className="h6 fw-bold mb-3">Student Growth</h2>
-                  <Line data={growthChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-                </div>
-              </div>
-            )}
-
-            {/* Exam Participation Chart */}
-            {participationData.length > 0 && (
-              <div className="col-lg-6">
-                <div className="surface p-3 h-100">
-                  <h2 className="h6 fw-bold mb-3">Exam Participation</h2>
-                  <Bar data={participationChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-                </div>
-              </div>
+            ) : (
+              <div className="text-secondary">No pending dues.</div>
             )}
           </div>
-        </>
-      )}
+        </div>
+
+        <div className="col-12">
+          <div className="surface p-3">
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
+              <span className="small text-secondary">{recentPayments.length} latest records</span>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Amount</th>
+                    <th>Mode</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentPayments.length === 0 ? (
+                    <tr><td colSpan="5" className="text-center text-secondary">No payments recorded yet.</td></tr>
+                  ) : recentPayments.map((payment) => (
+                    <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}`}>
+                      <td className="fw-semibold">{payment.studentName}</td>
+                      <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
+                      <td className="fw-semibold text-success">{money(payment.amount)}</td>
+                      <td>{payment.paymentMode || '-'}</td>
+                      <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

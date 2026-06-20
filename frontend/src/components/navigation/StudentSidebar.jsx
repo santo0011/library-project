@@ -7,6 +7,7 @@ const items = [
   { to: '/student/dashboard', icon: 'bi-speedometer2', label: 'Dashboard' },
   { to: '/student/exams', icon: 'bi-journal-text', label: 'Exams' },
   { to: '/student/results', icon: 'bi-trophy', label: 'Results' },
+  { to: '/student/fees', icon: 'bi-wallet2', label: 'Fees' },
   { to: '/student/profile', icon: 'bi-person', label: 'Profile' }
 ];
 

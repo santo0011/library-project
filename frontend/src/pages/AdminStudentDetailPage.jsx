@@ -9,6 +9,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
   const [results, setResults] = useState([]);
+  const [fee, setFee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -17,11 +18,13 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
     setLoading(true);
     Promise.all([
       api.get(`/students/${id}`),
-      api.get(`/students/${id}/submissions`).catch(() => ({ data: { data: [] } }))
+      api.get(`/students/${id}/submissions`).catch(() => ({ data: { data: [] } })),
+      api.get(`/fees/students/${id}`).catch(() => ({ data: { data: null } }))
     ])
-      .then(([studentRes, submissionsRes]) => {
+      .then(([studentRes, submissionsRes, feeRes]) => {
         setStudent(studentRes.data.data);
         setResults(submissionsRes.data.data || []);
+        setFee(feeRes.data.data);
       })
       .catch((err) => setError(err.response?.data?.message || 'Failed to load student details'))
       .finally(() => setLoading(false));
@@ -49,6 +52,13 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
     totalScore: results.reduce((s, r) => s + (r.score || 0), 0),
     bestScore: results.length ? Math.max(...results.map((r) => r.percentage || 0)) : 0
   };
+  const money = (value) => new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value || 0));
+  const assignedFees = [...(fee?.assignedFees || [])].sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
+  const payments = [...(fee?.payments || [])].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
 
   const handleBack = () => {
     if (onClose) {
@@ -59,12 +69,11 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
   };
 
 
-
   return (
     <div>
-      <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={handleBack}>
+      {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={handleBack}>
         <i className="bi bi-arrow-left me-1" /> {onClose ? 'Close' : 'Back to Students'}
-      </button>
+      </button> */}
 
       {/* Student Profile Card */}
       <div className="card shadow-sm border-0 mb-4">
@@ -127,6 +136,87 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
       </div>
 
       {/* Exam Results */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header border-0 pt-3 pb-0" style={{ background: 'transparent' }}>
+          <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>
+            <i className="bi bi-cash-coin me-2 text-success" />Fees
+          </h6>
+        </div>
+        <div className="card-body p-3">
+          <div className="row g-3 mb-3">
+            {[
+              { label: 'Total Fee', value: money(fee?.totalFee), color: '#1565c0', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' },
+              { label: 'Paid Amount', value: money(fee?.paidAmount), color: '#2e7d32', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' },
+              { label: 'Due Amount', value: money(fee?.dueAmount), color: '#c62828', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },
+              { label: 'Payment Status', value: fee?.paymentStatus || 'Unpaid', color: '#e65100', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }
+            ].map((item) => (
+              <div className="col-sm-6 col-xl-3" key={item.label}>
+                <div className="p-3 rounded-3 h-100" style={{ background: item.bg }}>
+                  <small className="fw-semibold" style={{ color: item.color }}>{item.label}</small>
+                  <div className="fs-5 fw-bold" style={{ color: item.color }}>{item.value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h6 className="fw-bold mb-2">Fee History</h6>
+          <div className="table-responsive mb-3">
+            <table className="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Fee Type</th>
+                  <th>Amount</th>
+                  <th>Assigned</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignedFees.length === 0 ? (
+                  <tr><td colSpan="4" className="text-center text-secondary">No fee assigned yet.</td></tr>
+                ) : assignedFees.map((item) => (
+                  <tr key={item._id}>
+                    <td className="fw-semibold">{item.name}</td>
+                    <td>{money(item.amount)}</td>
+                    <td>{item.assignedAt ? moment(item.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
+                    <td>{item.description || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h6 className="fw-bold mb-2">Payment History</h6>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Mode</th>
+                  <th>Fee Type</th>
+                  <th>Transaction</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.length === 0 ? (
+                  <tr><td colSpan="6" className="text-center text-secondary">No payments recorded.</td></tr>
+                ) : payments.map((payment) => (
+                  <tr key={payment._id}>
+                    <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
+                    <td className="fw-semibold text-success">{money(payment.amount)}</td>
+                    <td>{payment.paymentMode || '-'}</td>
+                    <td>{payment.feeName || '-'}</td>
+                    <td>{payment.transactionId || '-'}</td>
+                    <td>{payment.remarks || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div className="card shadow-sm border-0">
         <div className="card-header border-0 pt-3 pb-0" style={{ background: 'transparent' }}>
           <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>
@@ -158,7 +248,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                     <tr key={r._id}>
                       <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
                       <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r?.exam?.subject}</td>
-                      <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>  
+                      <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
                       <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.score}</td>
                       <td>
                         <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}`}>
