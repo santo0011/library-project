@@ -31,6 +31,11 @@ export const feeService = {
     return data.data;
   },
 
+  async deleteFeeType(id) {
+    const { data } = await api.delete(`/fees/types/${id}`);
+    return data.data;
+  },
+
   async bulkAssign(payload) {
     const { data } = await api.post('/fees/assign', payload);
     return data.data;

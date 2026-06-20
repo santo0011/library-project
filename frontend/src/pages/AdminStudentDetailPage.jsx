@@ -57,8 +57,18 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
     currency: 'INR',
     maximumFractionDigits: 0
   }).format(Number(value || 0));
-  const assignedFees = [...(fee?.assignedFees || [])].sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
-  const payments = [...(fee?.payments || [])].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+  const allPayments = [...(fee?.payments || [])].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+  const assignedFees = [...(fee?.assignedFees || [])].sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt)).map((item) => {
+    const paid = allPayments
+      .filter((p) => p.feeType?.toString() === item.feeType?.toString())
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    return {
+      ...item,
+      paidAmount: paid,
+      dueAmount: Math.max(Number(item.amount || 0) - paid, 0)
+    };
+  });
+  const payments = allPayments;
 
   const handleBack = () => {
     if (onClose) {
@@ -124,7 +134,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                   style={{ width: 56, height: 56, minWidth: 56 }}
                 >
                   <i className={`bi ${s.icon} text-${s.color} fs-4`} />
-                </div>
+                  </div>
                 <div>
                   <div className="fs-3 fw-bold" style={{ color: 'var(--app-text)' }}>{s.value}</div>
                   <small style={{ color: 'var(--app-muted)' }}>{s.label}</small>
@@ -160,23 +170,27 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           </div>
 
           <h6 className="fw-bold mb-2">Fee History</h6>
-          <div className="table-responsive mb-3">
+          <div className="table-responsive mb-3" style={{ maxHeight: 310, overflowY: 'auto' }}>
             <table className="table table-hover align-middle">
               <thead>
                 <tr>
                   <th>Fee Type</th>
-                  <th>Amount</th>
+                  <th>Total Fee</th>
+                  <th>Paid Amount</th>
+                  <th>Due Amount</th>
                   <th>Assigned</th>
                   <th>Description</th>
                 </tr>
               </thead>
               <tbody>
                 {assignedFees.length === 0 ? (
-                  <tr><td colSpan="4" className="text-center text-secondary">No fee assigned yet.</td></tr>
+                  <tr><td colSpan="6" className="text-center text-secondary">No fee assigned yet.</td></tr>
                 ) : assignedFees.map((item) => (
                   <tr key={item._id}>
                     <td className="fw-semibold">{item.name}</td>
                     <td>{money(item.amount)}</td>
+                    <td className="text-success fw-semibold">{money(item.paidAmount)}</td>
+                    <td className="text-danger fw-semibold">{money(item.dueAmount)}</td>
                     <td>{item.assignedAt ? moment(item.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
                     <td>{item.description || '-'}</td>
                   </tr>
@@ -186,7 +200,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           </div>
 
           <h6 className="fw-bold mb-2">Payment History</h6>
-          <div className="table-responsive">
+          <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
             <table className="table table-hover align-middle">
               <thead>
                 <tr>
@@ -230,7 +244,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
               <small>No exam results yet.</small>
             </div>
           ) : (
-            <div className="table-responsive">
+            <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
               <table className="table table-hover align-middle">
                 <thead className="">
                   <tr>

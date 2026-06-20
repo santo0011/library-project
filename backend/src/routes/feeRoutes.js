@@ -20,6 +20,7 @@ feeRoutes.get('/mine', authorizeRoles('Student'), feeController.getMine);
 feeRoutes.get('/types', authorizePermissions(Permissions.FEES_READ), feeController.listFeeTypes);
 feeRoutes.post('/types', authorizePermissions(Permissions.FEES_WRITE), createFeeTypeValidation, validateRequest, feeController.createFeeType);
 feeRoutes.patch('/types/:id', authorizePermissions(Permissions.FEES_WRITE), updateFeeTypeValidation, validateRequest, feeController.updateFeeType);
+feeRoutes.delete('/types/:id', authorizePermissions(Permissions.FEES_WRITE), feeController.deleteFeeType);
 feeRoutes.post('/assign', authorizePermissions(Permissions.FEES_WRITE), bulkAssignFeeValidation, validateRequest, feeController.bulkAssign);
 feeRoutes.post('/remove', authorizePermissions(Permissions.FEES_WRITE), bulkRemoveFeeValidation, validateRequest, feeController.bulkRemove);
 feeRoutes.get('/', authorizePermissions(Permissions.FEES_READ), feeController.list);

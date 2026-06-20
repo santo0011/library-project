@@ -378,7 +378,7 @@ export const AdminFeeManagementPage = () => {
           <table className="table align-middle">
             <thead>
               <tr>
-                <th style={{ width: 48 }}><input className="form-check-input" type="checkbox" checked={allPageSelected} onChange={toggleAll} /></th>
+                <th style={{ width: 48 }}><input style={{ cursor: 'pointer' }} className="form-check-input" type="checkbox" checked={allPageSelected} onChange={toggleAll} /></th>
                 <th>Student Name</th>
                 <th>Student ID</th>
                 <th>Total Fee</th>
@@ -396,7 +396,7 @@ export const AdminFeeManagementPage = () => {
                 <tr><td colSpan="9" className="text-center text-secondary">No students found.</td></tr>
               ) : fees.items.map((row) => (
                 <tr key={row.student._id}>
-                  <td><input className="form-check-input" type="checkbox" checked={selectedStudents.includes(row.student._id)} onChange={() => toggleStudent(row.student._id)} /></td>
+                  <td><input style={{ border: "0.6px solid #585454", cursor: "pointer" }} className="form-check-input" type="checkbox" checked={selectedStudents.includes(row.student._id)} onChange={() => toggleStudent(row.student._id)} /></td>
                   <td className="fw-semibold">{row.student.name}</td>
                   <td><span className="badge text-bg-secondary">{row.student.studentId || '-'}</span></td>
                   <td>{money(row.totalFee)}</td>

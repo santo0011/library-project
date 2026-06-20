@@ -28,6 +28,11 @@ class FeeController {
     res.status(StatusCodes.CREATED).json({ success: true, data, message: 'Fee type created successfully' });
   });
 
+  deleteFeeType = asyncHandler(async (req, res) => {
+    const data = await feeService.deleteFeeType(req.params.id);
+    res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee type deleted successfully' });
+  });
+
   updateFeeType = asyncHandler(async (req, res) => {
     const data = await feeService.updateFeeType(req.params.id, req.body);
     res.status(StatusCodes.OK).json({ success: true, data, message: 'Fee type updated successfully' });

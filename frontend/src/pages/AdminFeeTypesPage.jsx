@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../components/common/Modal.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { feeService } from '../services/feeService.js';
-import { showToast } from '../utils/sweetAlerts.js';
+import { showToast, confirmAction } from '../utils/sweetAlerts.js';
 
 const lockedFeeTypeMessage = 'This Fee Type has already been assigned and can no longer be edited.';
+const deleteBlockedMessage = 'This Fee Type has already been assigned to students and cannot be deleted.';
 const blankType = { name: '', amount: '', description: '', isActive: true };
 
 const money = (value) => new Intl.NumberFormat('en-IN', {
@@ -72,6 +73,32 @@ export const AdminFeeTypesPage = () => {
       description: type.description || '',
       isActive: type.isActive
     });
+  };
+
+  const handleDeleteFeeType = async (type) => {
+    if (type.isLocked || type.assignmentCount > 0) {
+      showToast('error', deleteBlockedMessage);
+      return;
+    }
+
+    const result = await confirmAction({
+      title: 'Delete Fee Type?',
+      text: 'Are you sure you want to delete this fee type?',
+      confirmButtonText: 'Delete'
+    });
+
+    if (!result.isConfirmed) return;
+
+    setBusy(true);
+    try {
+      await feeService.deleteFeeType(type._id);
+      showToast('success', 'Fee type deleted successfully.');
+      loadFeeTypes();
+    } catch (err) {
+      showToast('error', err.response?.data?.message || 'Unable to delete fee type');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const updateFeeType = async (event) => {
@@ -170,8 +197,11 @@ export const AdminFeeTypesPage = () => {
                     </span>
                   </td>
                   <td className="text-end">
-                    <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => openEditType(type)} disabled={busy}>
+                    <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => openEditType(type)} disabled={busy}>
                       <i className="bi bi-pencil me-1" />Edit
+                    </button>
+                    <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDeleteFeeType(type)} disabled={busy}>
+                      <i className="bi bi-trash me-1" />Delete
                     </button>
                   </td>
                 </tr>

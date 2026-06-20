@@ -102,6 +102,19 @@ class FeeService {
     });
   }
 
+  async deleteFeeType(id) {
+    const feeType = await feeTypeRepository.findById(id);
+    if (!feeType) throw new AppError('Fee type not found', StatusCodes.NOT_FOUND);
+
+    const assignmentCount = await feeRepository.model.countDocuments({ 'assignedFees.feeType': feeType._id });
+    if (assignmentCount > 0) {
+      throw new AppError('This Fee Type has already been assigned to students and cannot be deleted.', StatusCodes.BAD_REQUEST);
+    }
+
+    await feeType.deleteOne();
+    return { id };
+  }
+
   async updateFeeType(id, payload) {
     const feeType = await feeTypeRepository.findById(id);
     if (!feeType) throw new AppError('Fee type not found', StatusCodes.NOT_FOUND);

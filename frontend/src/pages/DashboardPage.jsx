@@ -91,6 +91,31 @@ export const DashboardPage = () => {
     <>
       <PageHeader title="Dashboard" subtitle="Financial and exam system overview." />
 
+      {/* Welcome Card */}
+      {/* <div
+        className="card shadow border-0 mb-4 text-white"
+        style={{
+          borderRadius: 12,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        }}
+      >
+        <div className="card-body py-3 px-4">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 className="fw-bold mb-1">Welcome Back!</h4>
+              <small className="opacity-75">
+                Track your exams and results.
+              </small>
+            </div>
+
+            <div className="text-end">
+              <h3 className="fw-bold mb-0">#</h3>
+              <small className="opacity-75">Available</small>
+            </div>
+          </div>
+        </div>
+      </div> */}
+
       <div className="row g-3 mb-4">
         {metrics.map((stat) => (
           <div className="col-sm-6 col-xl-4" key={stat.label}>
