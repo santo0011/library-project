@@ -43,6 +43,8 @@ export const AdminFeeManagementPage = () => {
   const [assignedHistoryPage, setAssignedHistoryPage] = useState(1);
   const [paymentHistoryPage, setPaymentHistoryPage] = useState(1);
   const [busy, setBusy] = useState(false);
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [recentPaymentsLoading, setRecentPaymentsLoading] = useState(true);
 
   const loadFees = () => {
     setLoading(true);
@@ -88,6 +90,15 @@ export const AdminFeeManagementPage = () => {
 
   useEffect(() => {
     loadFeeTypes();
+  }, []);
+
+  useEffect(() => {
+    setRecentPaymentsLoading(true);
+    feeService
+      .getRecentPayments(5)
+      .then(setRecentPayments)
+      .catch(() => {})
+      .finally(() => setRecentPaymentsLoading(false));
   }, []);
 
   const activeFeeTypes = feeTypes;
@@ -329,6 +340,50 @@ export const AdminFeeManagementPage = () => {
   return (
     <>
       <PageHeader title="Fee Management" subtitle={`${fees.total} student fee records.`} />
+
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header border-0 pt-3 pb-0" style={{ background: 'transparent' }}>
+          <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>
+            <i className="bi bi-clock-history me-2 text-primary" />Recent Payments
+          </h6>
+        </div>
+        <div className="card-body p-3">
+          {recentPaymentsLoading ? (
+            <p className="text-secondary small mb-0">Loading recent payments...</p>
+          ) : recentPayments.length === 0 ? (
+            <p className="text-secondary small mb-0">No payments recorded yet.</p>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Amount</th>
+                    <th>Fee Type</th>
+                    <th>Mode</th>
+                    <th>Date & Time</th>
+                    <th>Transaction</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentPayments.map((payment, index) => (
+                    <tr key={payment.paymentId || index}>
+                      <td className="fw-semibold text-truncate" style={{ maxWidth: 160 }} title={payment.student?.name || '-'}>
+                        {payment.student?.name || '-'}
+                      </td>
+                      <td className="fw-semibold text-success">{money(payment.amount)}</td>
+                      <td>{payment.feeName || '-'}</td>
+                      <td>{payment.paymentMode || '-'}</td>
+                      <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY h:mm A') : '-'}</td>
+                      <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="surface p-3 mb-3">
         <div className="row g-2 align-items-end">

@@ -25,6 +25,7 @@ feeRoutes.patch('/types/:id/toggle-status', authorizePermissions(Permissions.FEE
 feeRoutes.post('/types/bulk-toggle-status', authorizePermissions(Permissions.FEES_WRITE), feeController.bulkToggleFeeTypeStatus);
 feeRoutes.post('/assign', authorizePermissions(Permissions.FEES_WRITE), bulkAssignFeeValidation, validateRequest, feeController.bulkAssign);
 feeRoutes.post('/remove', authorizePermissions(Permissions.FEES_WRITE), bulkRemoveFeeValidation, validateRequest, feeController.bulkRemove);
+feeRoutes.get('/recent-payments', authorizePermissions(Permissions.FEES_READ), feeController.getRecentPayments);
 feeRoutes.get('/', authorizePermissions(Permissions.FEES_READ), feeController.list);
 feeRoutes.get('/students/:studentId', authorizePermissions(Permissions.FEES_READ), feeController.getByStudent);
 feeRoutes.patch('/students/:studentId/total-fee', authorizePermissions(Permissions.FEES_WRITE), setTotalFeeValidation, validateRequest, feeController.setTotalFee);

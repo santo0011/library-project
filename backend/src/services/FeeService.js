@@ -28,6 +28,10 @@ class FeeService {
     });
   }
 
+  async getRecentPayments(limit) {
+    return feeRepository.getRecentPayments(limit || 5);
+  }
+
   async getStudentFee(studentId) {
     const student = await userRepository.findById(studentId);
     if (!student || student.role !== Roles.STUDENT) {

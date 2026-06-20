@@ -6,6 +6,11 @@ export const feeService = {
     return data.data;
   },
 
+  async getRecentPayments(limit) {
+    const { data } = await api.get('/fees/recent-payments', { params: { limit } });
+    return data.data;
+  },
+
   async getByStudent(studentId) {
     const { data } = await api.get(`/fees/students/${studentId}`);
     return data.data;

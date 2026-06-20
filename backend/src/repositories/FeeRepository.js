@@ -7,8 +7,25 @@ class FeeRepository extends BaseRepository {
     super(Fee);
   }
 
-  findByStudent(studentId) {
-    return this.model.findOne({ student: studentId }).populate('student', 'name email studentId mobile status');
+  async findByStudent(studentId) {
+    const fee = await this.model.findOne({ student: studentId }).populate('student', 'name email studentId mobile status').lean();
+    if (!fee) return null;
+
+    // Convert ObjectId feeType fields to strings for frontend compatibility
+    if (fee.assignedFees) {
+      fee.assignedFees = fee.assignedFees.map((af) => ({
+        ...af,
+        feeType: af.feeType?.toString() || af.feeType
+      }));
+    }
+    if (fee.payments) {
+      fee.payments = fee.payments.map((p) => ({
+        ...p,
+        feeType: p.feeType?.toString() || p.feeType
+      }));
+    }
+
+    return fee;
   }
 
   async paginate({ page = 1, limit = 10, search = '' }) {
@@ -57,8 +74,40 @@ class FeeRepository extends BaseRepository {
                 paidAmount: { $ifNull: ['$fee.paidAmount', 0] },
                 dueAmount: { $ifNull: ['$fee.dueAmount', 0] },
                 paymentStatus: { $ifNull: ['$fee.paymentStatus', 'Unpaid'] },
-                assignedFees: { $ifNull: ['$fee.assignedFees', []] },
-                payments: { $ifNull: ['$fee.payments', []] },
+                assignedFees: {
+                  $ifNull: [
+                    {
+                      $map: {
+                        input: { $ifNull: ['$fee.assignedFees', []] },
+                        as: 'af',
+                        in: {
+                          $mergeObjects: [
+                            '$$af',
+                            { feeType: { $toString: '$$af.feeType' } }
+                          ]
+                        }
+                      }
+                    },
+                    []
+                  ]
+                },
+                payments: {
+                  $ifNull: [
+                    {
+                      $map: {
+                        input: { $ifNull: ['$fee.payments', []] },
+                        as: 'p',
+                        in: {
+                          $mergeObjects: [
+                            '$$p',
+                            { feeType: { $toString: '$$p.feeType' } }
+                          ]
+                        }
+                      }
+                    },
+                    []
+                  ]
+                },
                 feeId: '$fee._id'
               }
             }
@@ -77,6 +126,45 @@ class FeeRepository extends BaseRepository {
       limit: safeLimit,
       pages: Math.ceil(total / safeLimit) || 1
     };
+  }
+
+  async getRecentPayments(limit = 5) {
+    const pipeline = [
+      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
+      { $sort: { 'payments.paymentDate': -1 } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'student',
+          foreignField: '_id',
+          as: 'studentInfo'
+        }
+      },
+      { $unwind: { path: '$studentInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          paymentId: '$payments._id',
+          amount: '$payments.amount',
+          paymentDate: '$payments.paymentDate',
+          paymentMode: '$payments.paymentMode',
+          transactionId: '$payments.transactionId',
+          feeName: '$payments.feeName',
+          feeType: { $toString: '$payments.feeType' },
+          remarks: '$payments.remarks',
+          recordedBy: '$payments.recordedBy',
+          student: {
+            _id: '$studentInfo._id',
+            name: '$studentInfo.name',
+            studentId: '$studentInfo.studentId',
+            email: '$studentInfo.email'
+          }
+        }
+      }
+    ];
+
+    return this.model.aggregate(pipeline);
   }
 }
 

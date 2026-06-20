@@ -8,6 +8,11 @@ class FeeController {
     res.status(StatusCodes.OK).json({ success: true, data });
   });
 
+  getRecentPayments = asyncHandler(async (req, res) => {
+    const data = await feeService.getRecentPayments(req.query.limit);
+    res.status(StatusCodes.OK).json({ success: true, data });
+  });
+
   getByStudent = asyncHandler(async (req, res) => {
     const data = await feeService.getStudentFee(req.params.studentId);
     res.status(StatusCodes.OK).json({ success: true, data });

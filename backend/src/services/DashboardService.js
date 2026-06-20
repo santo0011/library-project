@@ -63,15 +63,17 @@ class DashboardService {
       ]),
       Fee.aggregate([
         { $unwind: '$payments' },
-        { $sort: { 'payments.paymentDate': -1 } },
-        { $limit: 5 },
+        { $sort: { 'payments.paymentDate': -1, 'payments.createdAt': -1 } },
         { $lookup: { from: 'users', localField: 'student', foreignField: '_id', as: 'student' } },
-        { $unwind: '$student' },
+        { $unwind: { path: '$student', preserveNullAndEmptyArrays: false } },
+        { $limit: 5 },
         {
           $project: {
             amount: '$payments.amount',
             paymentDate: '$payments.paymentDate',
             paymentMode: '$payments.paymentMode',
+            transactionId: '$payments.transactionId',
+            feeName: '$payments.feeName',
             studentName: '$student.name',
             studentId: '$student.studentId'
           }

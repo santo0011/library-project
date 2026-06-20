@@ -179,7 +179,7 @@ export const DashboardPage = () => {
           <div className="surface p-3">
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
               <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
-              <span className="small text-secondary">{recentPayments.length} latest records</span>
+              <span className="small text-secondary">Last 5 payments by date & time</span>
             </div>
             <div className="table-responsive">
               <table className="table align-middle">
@@ -188,20 +188,24 @@ export const DashboardPage = () => {
                     <th>Student</th>
                     <th>Student ID</th>
                     <th>Amount</th>
+                    <th>Fee Type</th>
                     <th>Mode</th>
-                    <th>Date</th>
+                    <th>Date & Time</th>
+                    <th>Transaction</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentPayments.length === 0 ? (
-                    <tr><td colSpan="5" className="text-center text-secondary">No payments recorded yet.</td></tr>
-                  ) : recentPayments.map((payment) => (
-                    <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}`}>
+                    <tr><td colSpan="7" className="text-center text-secondary">No payments recorded yet.</td></tr>
+                  ) : recentPayments.map((payment, index) => (
+                    <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}-${index}`}>
                       <td className="fw-semibold">{payment.studentName}</td>
                       <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
                       <td className="fw-semibold text-success">{money(payment.amount)}</td>
+                      <td>{payment.feeName || '-'}</td>
                       <td>{payment.paymentMode || '-'}</td>
                       <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
+                      <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
