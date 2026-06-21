@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { Drawer } from '../components/common/Drawer.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
-import { ExamFormModal } from '../components/exams/ExamFormModal.jsx';
+import { ExamForm } from '../components/exams/ExamForm.jsx';
 import { usePermission } from '../hooks/usePermission.js';
 import { examService } from '../services/examService.js';
 import { PERMISSIONS } from '../utils/constants.js';
@@ -202,7 +203,14 @@ export const ExamsPage = () => {
           )}
         </div>
       </div>
-      <ExamFormModal show={Boolean(editing)} exam={editing?._id ? editing : null} onClose={() => setEditing(null)} onSubmit={save} busy={busy} />
+      <Drawer
+        show={Boolean(editing)}
+        title={editing?._id ? 'Edit Exam' : 'Create Exam'}
+        onClose={() => setEditing(null)}
+        width="550px"
+      >
+        <ExamForm exam={editing?._id ? editing : null} onSubmit={save} onClose={() => setEditing(null)} busy={busy} />
+      </Drawer>
     </>
   );
 };

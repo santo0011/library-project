@@ -26,7 +26,8 @@ class ExamService {
   async getById(id) {
     const exam = await examRepository.model.findById(id).populate('questions');
     if (!exam) throw new AppError('Exam not found', StatusCodes.NOT_FOUND);
-    return exam;
+    const submissionCount = await submissionRepository.model.countDocuments({ exam: id });
+    return { ...exam.toObject(), isLocked: submissionCount > 0 };
   }
 
   async create(payload, user) {

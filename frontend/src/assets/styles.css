@@ -787,6 +787,40 @@ body {
   flex: 1;
 }
 
+.fee-drawer-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: min(420px, 52vh);
+  border-radius: 8px;
+}
+
+.fee-drawer-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.fee-drawer-table thead th,
+.fee-drawer-table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fee-drawer-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.fee-drawer-table .badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 @media (max-width: 768px) {
   .drawer-box {
     max-width: 100% !important;
@@ -798,6 +832,12 @@ body {
 
   .drawer-header {
     padding: 16px;
+  }
+
+  .fee-drawer-table thead th,
+  .fee-drawer-table tbody td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
   }
 }
 

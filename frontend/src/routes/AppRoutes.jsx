@@ -14,6 +14,9 @@ import { StudentProfilePage } from '../pages/StudentProfilePage.jsx';
 import { StudentResultDetailPage } from '../pages/StudentResultDetailPage.jsx';
 import { AdminStudentsPage } from '../pages/AdminStudentsPage.jsx';
 import { AdminStudentDetailPage } from '../pages/AdminStudentDetailPage.jsx';
+import { AdminFeeManagementPage } from '../pages/AdminFeeManagementPage.jsx';
+import { AdminFeeTypesPage } from '../pages/AdminFeeTypesPage.jsx';
+import { StudentFeesPage } from '../pages/StudentFeesPage.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
 import { RoleRoute } from './RoleRoute.jsx';
 
@@ -32,6 +35,8 @@ export const AppRoutes = () => (
           <Route path="/exams/:id/questions" element={<ExamQuestionsPage />} />
           <Route path="/students" element={<AdminStudentsPage />} />
           <Route path="/students/:id" element={<AdminStudentDetailPage />} />
+          <Route path="/fees" element={<AdminFeeManagementPage />} />
+          <Route path="/fee-types" element={<AdminFeeTypesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
@@ -46,6 +51,7 @@ export const AppRoutes = () => (
           <Route path="/student/exams/:id/take" element={<TakeExamPage />} />
           <Route path="/student/results" element={<StudentResultDetailPage />} />
           <Route path="/student/results/:id" element={<StudentResultDetailPage />} />
+          <Route path="/student/fees" element={<StudentFeesPage />} />
           <Route path="/student/profile" element={<StudentProfilePage />} />
         </Route>
       </Route>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export const Drawer = ({ show, title, children, onClose, width = '560px' }) => {
+export const Drawer = ({ show, title, children, onClose, width = '860px' }) => {
   const drawerRef = useRef(null);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export const Drawer = ({ show, title, children, onClose, width = '560px' }) => {
         className={`drawer-overlay ${show ? 'drawer-overlay--visible' : ''}`}
         onClick={handleBackdropClick}
       />
-      <div className={`drawer-container ${show ? 'drawer-container--visible' : ''}`} ref={drawerRef}>
+      <div className={`drawer-container ${show ? 'drawer-container--visible' : ''}`} ref={drawerRef} onClick={handleBackdropClick}>
         <div className="drawer-box" style={{ maxWidth: width }}>
           <div className="drawer-header">
             <h2 className="drawer-title">{title}</h2>

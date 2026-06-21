@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
+import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
-import { QuestionFormModal } from '../components/exams/QuestionFormModal.jsx';
+import { QuestionForm } from '../components/exams/QuestionForm.jsx';
 import { examService } from '../services/examService.js';
+import Swal from 'sweetalert2';
 
 export const ExamQuestionsPage = () => {
   const { id } = useParams();
@@ -34,6 +36,41 @@ export const ExamQuestionsPage = () => {
   };
 
   useEffect(load, [id]);
+
+  const handleLockedAction = () => {
+    Swal.fire({
+      title: 'Action Not Allowed',
+      text: 'This exam has already been attempted by students. Questions can no longer be added, edited, or deleted.',
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  };
+
+  const handleAdd = () => {
+    if (exam.isLocked) {
+      handleLockedAction();
+      return;
+    }
+    setEditing(null);
+    setAdding(true);
+  };
+
+  const handleEdit = (q) => {
+    if (exam.isLocked) {
+      handleLockedAction();
+      return;
+    }
+    setEditing(q);
+    setAdding(true);
+  };
+
+  const handleDelete = (q) => {
+    if (exam.isLocked) {
+      handleLockedAction();
+      return;
+    }
+    setDeleting(q);
+  };
 
   const saveQuestion = async (payload) => {
     setBusy(true);
@@ -73,7 +110,7 @@ export const ExamQuestionsPage = () => {
         title={`Questions: ${exam.name}`}
         subtitle={`${questions.total || exam.questions?.length || 0} questions • ${exam.questionTimerSeconds}s per question timer`}
         action={
-          <button className="btn btn-primary" type="button" onClick={() => setAdding(true)}>
+          <button className="btn btn-primary" type="button" onClick={handleAdd}>
             <i className="bi bi-plus-lg me-2" />Add Question
           </button>
         }
@@ -102,8 +139,8 @@ export const ExamQuestionsPage = () => {
                     <td>{q.marks}</td>
                     <td><span className="badge text-bg-success">Option {q.correctOption + 1}</span></td>
                     <td className="text-end">
-                      <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => { setEditing(q); setAdding(true); }} title="Edit"><i className="bi bi-pencil" /></button>
-                      <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => setDeleting(q)} title="Delete"><i className="bi bi-trash" /></button>
+                      <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => handleEdit(q)} title="Edit"><i className="bi bi-pencil" /></button>
+                      <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDelete(q)} title="Delete"><i className="bi bi-trash" /></button>
                     </td>
                   </tr>
                 ))
@@ -113,13 +150,14 @@ export const ExamQuestionsPage = () => {
         </div>
       </div>
 
-      <QuestionFormModal
+      <Drawer
         show={adding}
-        question={editing}
+        title={editing?._id ? 'Edit Question' : 'New Question'}
         onClose={() => { setAdding(false); setEditing(null); }}
-        onSubmit={saveQuestion}
-        busy={busy}
-      />
+        width="550px"
+      >
+        <QuestionForm question={editing} onSubmit={saveQuestion} onClose={() => { setAdding(false); setEditing(null); }} busy={busy} />
+      </Drawer>
       <ConfirmModal show={Boolean(deleting)} title="Delete question" message={`Delete this question? This action cannot be undone.`} onCancel={() => setDeleting(null)} onConfirm={deleteQuestion} busy={busy} />
     </>
   );

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { FeeSummaryCards } from '../components/common/FeeSummaryCards.jsx';
 import { api } from '../services/api.js';
+import { feeService } from '../services/feeService.js';
 
 export const StudentDashboardPage = () => {
   const navigate = useNavigate();
@@ -9,18 +11,22 @@ export const StudentDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [fee, setFee] = useState(null);
+
   useEffect(() => {
     Promise.all([
       api.get('/students/exams'),
       api.get('/students/dashboard'),
-      api.get('/students/results')
+      api.get('/students/results'),
+      feeService.getMine()
     ])
-      .then(([examsRes, dashRes, resultsRes]) => {
+      .then(([examsRes, dashRes, resultsRes, feeData]) => {
         setData({
           exams: examsRes.data.data || [],
           dashboard: dashRes.data.data || {},
           results: resultsRes.data.data || []
         });
+        setFee(feeData);
       })
       .catch((err) => setError(err.response?.data?.message || 'Failed to load dashboard'))
       .finally(() => setLoading(false));
@@ -61,23 +67,36 @@ export const StudentDashboardPage = () => {
 
   return (
     <div>
-      <PageHeader title="Student Dashboard" subtitle="Your exam performance overview." />
+      <PageHeader title="Student Dashboard" subtitle="Your financial and exam overview" />
+      {/* <PageHeader title="Student Dashboard" subtitle="Your exam performance overview." /> */}
 
       {/* Welcome Card */}
-      <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="card-body p-4">
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div
+        className="card shadow border-0 mb-4 text-white"
+        style={{
+          borderRadius: 12,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        }}
+      >
+        <div className="card-body py-3 px-4">
+          <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h4 className="fw-bold mb-1">Welcome back!</h4>
-              <p className="mb-0 opacity-75">Track your exams and performance below.</p>
+              <h4 className="fw-bold mb-1">Welcome Back!</h4>
+              <small className="opacity-75">
+                Track your exams and results.
+              </small>
             </div>
+
             <div className="text-end">
-              <div className="fs-1 fw-bold">{availableExams}</div>
-              <small className="opacity-75">Exams Available</small>
+              <h3 className="fw-bold mb-0">{availableExams}</h3>
+              <small className="opacity-75">Available</small>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Fee Summary Cards */}
+      {fee && <FeeSummaryCards fee={fee} />}
 
       {/* Stats Cards */}
       <div className="row g-3 mb-4">
@@ -230,7 +249,7 @@ export const StudentDashboardPage = () => {
         </div>
       )}
 
-      
+
     </div>
   );
 };
