@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
-import { QuestionForm } from '../components/exams/QuestionForm.jsx';
+import { QuestionFormModal } from '../components/exams/QuestionFormModal.jsx';
 import { examService } from '../services/examService.js';
 import Swal from 'sweetalert2';
 
@@ -16,6 +16,7 @@ export const ExamQuestionsPage = () => {
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -24,12 +25,8 @@ export const ExamQuestionsPage = () => {
       examService.listQuestions({ limit: 100, subject: '' })
     ])
       .then(([examData, questionsData]) => {
-
-
-        console.log("examData", examData)
-
-
         setExam(examData);
+        setIsLocked(examData.isLocked || false);
         setQuestions(questionsData);
       })
       .finally(() => setLoading(false));
@@ -37,18 +34,20 @@ export const ExamQuestionsPage = () => {
 
   useEffect(load, [id]);
 
-  const handleLockedAction = () => {
+  const handleLockedAction = (action = '') => {
     Swal.fire({
       title: 'Action Not Allowed',
-      text: 'This exam has already been attempted by students. Questions can no longer be added, edited, or deleted.',
+      text: action
+        ? `This exam has already been attempted by students. Questions can no longer be ${action}.`
+        : 'This exam has already been attempted by students. Questions can no longer be added, edited, imported, or deleted.',
       icon: 'error',
       confirmButtonText: 'OK'
     });
   };
 
   const handleAdd = () => {
-    if (exam.isLocked) {
-      handleLockedAction();
+    if (isLocked) {
+      handleLockedAction('added, edited, imported, or deleted');
       return;
     }
     setEditing(null);
@@ -56,8 +55,8 @@ export const ExamQuestionsPage = () => {
   };
 
   const handleEdit = (q) => {
-    if (exam.isLocked) {
-      handleLockedAction();
+    if (isLocked) {
+      handleLockedAction('edited');
       return;
     }
     setEditing(q);
@@ -65,14 +64,52 @@ export const ExamQuestionsPage = () => {
   };
 
   const handleDelete = (q) => {
-    if (exam.isLocked) {
-      handleLockedAction();
+    if (isLocked) {
+      handleLockedAction('deleted');
       return;
     }
     setDeleting(q);
   };
 
   const saveQuestion = async (payload) => {
+    // Handle bulk/paste import (array of questions)
+    if (payload.type === 'bulk' || payload.type === 'paste') {
+      setBusy(true);
+      try {
+        const result = await examService.bulkImport(id, payload.questions);
+        Swal.fire({
+          icon: 'success',
+          title: 'Import Successful',
+          text: `${result.total} question${result.total !== 1 ? 's' : ''} imported successfully.`,
+          confirmButtonColor: 'var(--primary)',
+          confirmButtonText: 'OK'
+        });
+        setAdding(false);
+        load();
+      } catch (err) {
+        const errMsg = err.response?.data?.errors;
+        if (errMsg && Array.isArray(errMsg)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Import Failed',
+            html: `<div class="text-start">${errMsg.map((e) => `<div>• ${e}</div>`).join('')}</div>`,
+            confirmButtonText: 'OK'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Import Failed',
+            text: err.response?.data?.message || err.message || 'An unexpected error occurred.',
+            confirmButtonText: 'OK'
+          });
+        }
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    // Handle single question (existing workflow)
     setBusy(true);
     try {
       if (editing?._id) {
@@ -122,7 +159,6 @@ export const ExamQuestionsPage = () => {
             <thead>
               <tr>
                 <th style={{ width: '50%' }}>Question</th>
-                {/* <th>Subject</th> */}
                 <th>Marks</th>
                 <th>Correct Option</th>
                 <th className="text-end">Actions</th>
@@ -134,10 +170,18 @@ export const ExamQuestionsPage = () => {
               ) : (
                 (exam.questions || []).map((q, idx) => (
                   <tr key={q._id}>
-                    <td><div className="fw-semibold">{q.title}</div><div className="small text-secondary">{q.options?.map((o, i) => <span key={i} className={`me-2 ${i === q.correctOption ? 'text-success fw-bold' : ''}`}>{i + 1}. {o.text}</span>)}</div></td>
-                    {/* <td>{q.subject}</td> */}
+                    <td>
+                      <div className="fw-semibold">{q.title}</div>
+                      <div className="small text-secondary">
+                        {q.options?.map((o, i) => (
+                          <span key={i} className={`me-2 ${i === q.correctOption ? 'text-success fw-bold' : ''}`}>
+                            {String.fromCharCode(65 + i)}. {o.text}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
                     <td>{q.marks}</td>
-                    <td><span className="badge text-bg-success">Option {q.correctOption + 1}</span></td>
+                    <td><span className="badge text-bg-success">Option {String.fromCharCode(65 + q.correctOption)}</span></td>
                     <td className="text-end">
                       <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => handleEdit(q)} title="Edit"><i className="bi bi-pencil" /></button>
                       <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDelete(q)} title="Delete"><i className="bi bi-trash" /></button>
@@ -152,11 +196,17 @@ export const ExamQuestionsPage = () => {
 
       <Drawer
         show={adding}
-        title={editing?._id ? 'Edit Question' : 'New Question'}
+        title={editing?._id ? 'Edit Question' : 'Add Questions'}
         onClose={() => { setAdding(false); setEditing(null); }}
-        width="550px"
+        width="660px"
       >
-        <QuestionForm question={editing} onSubmit={saveQuestion} onClose={() => { setAdding(false); setEditing(null); }} busy={busy} />
+        <QuestionFormModal
+          question={editing}
+          onSubmit={saveQuestion}
+          onClose={() => { setAdding(false); setEditing(null); }}
+          busy={busy}
+          isLocked={isLocked}
+        />
       </Drawer>
       <ConfirmModal show={Boolean(deleting)} title="Delete question" message={`Delete this question? This action cannot be undone.`} onCancel={() => setDeleting(null)} onConfirm={deleteQuestion} busy={busy} />
     </>

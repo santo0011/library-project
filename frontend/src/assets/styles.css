@@ -1101,3 +1101,70 @@ body {
 .bg-gradient-warning { background: var(--gradient-warning) !important; }
 .bg-gradient-danger { background: var(--gradient-danger) !important; }
 .bg-gradient-info { background: var(--gradient-info) !important; }
+
+/* =============================================
+   BULK IMPORT & PASTE QUESTIONS STYLES
+   ============================================= */
+.border-dashed {
+  border-style: dashed !important;
+}
+
+.question-form-tab-content {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.question-form-tab-content .btn-outline-primary.btn-sm {
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+/* Tab hover effect */
+.question-form-tab-content .btn-sm.rounded-0:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary) !important;
+}
+
+/* Drop zone hover effect */
+.question-form-tab-content .border-dashed:hover {
+  border-color: var(--primary) !important;
+  background: var(--primary-light) !important;
+}
+
+/* Review cards */
+.bg-danger-light {
+  background: var(--danger-light);
+}
+
+.bg-success-light {
+  background: var(--success-light);
+}
+
+/* Code block in paste tab */
+.question-form-tab-content code {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--app-text);
+}
+
+/* Table sticky header fix */
+.question-form-tab-content .table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--app-bg);
+}
+
+/* Cursor pointer utility */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Question list badges */
+.question-form-tab-content .badge.cursor-pointer {
+  transition: var(--transition);
+}
+
+.question-form-tab-content .badge.cursor-pointer:hover {
+  transform: scale(1.1);
+  opacity: 0.85;
+}

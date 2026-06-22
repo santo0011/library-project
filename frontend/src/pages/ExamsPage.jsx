@@ -76,7 +76,7 @@ export const ExamsPage = () => {
     }
   };
 
-  const formatDate = (date) => date ? moment(date).format('DD MMM YYYY, h:mm A') : '-';
+  const formatDate = (date) => date ? moment(date).format('DD/MM/YYYY, h:mm A') : '-';
 
   return (
     <>

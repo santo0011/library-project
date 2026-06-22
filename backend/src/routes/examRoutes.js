@@ -19,3 +19,4 @@ examRoutes.get('/:id', authorizePermissions('exams:read'), examController.getByI
 examRoutes.put('/:id', authorizePermissions('exams:write'), examController.update);
 examRoutes.delete('/:id', authorizePermissions('exams:write'), examController.remove);
 examRoutes.post('/:id/questions', authorizePermissions('exams:write'), examController.addQuestions);
+examRoutes.post('/:id/questions/bulk', authorizePermissions('exams:write'), examController.bulkImportQuestions);
