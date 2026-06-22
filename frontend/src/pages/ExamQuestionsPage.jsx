@@ -266,6 +266,7 @@ export const ExamQuestionsPage = () => {
                       onChange={handleSelectAll}
                       disabled={questionList.length === 0}
                       id="select-all"
+                      style={{ cursor: "pointer" }}
                     />
                     <label className="form-check-label" htmlFor="select-all" />
                   </div>
@@ -290,6 +291,7 @@ export const ExamQuestionsPage = () => {
                           checked={selectedIds.includes(q._id)}
                           onChange={() => handleSelectOne(q._id)}
                           id={`check-${q._id}`}
+                          style={{ border: "0.6px solid #585454", cursor: "pointer" }}
                         />
                         <label className="form-check-label" htmlFor={`check-${q._id}`} />
                       </div>
