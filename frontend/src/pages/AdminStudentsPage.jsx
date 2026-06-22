@@ -3,14 +3,11 @@ import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
-import { StudentCreateForm } from '../components/users/StudentCreateForm.jsx';
+import { StudentCreateFormModal } from '../components/users/StudentCreateFormModal.jsx';
 import { api } from '../services/api.js';
 import { AdminStudentDetailPage } from './AdminStudentDetailPage.jsx';
 import { confirmAction, showToast } from '../utils/sweetAlerts.js';
-
-const blankStudent = {
-  name: '', email: '', password: '', mobile: '', gender: 'Male', dateOfBirth: ''
-};
+import Swal from 'sweetalert2';
 
 export const AdminStudentsPage = () => {
   const [students, setStudents] = useState({ items: [], total: 0, page: 1, pages: 1 });
@@ -32,6 +29,54 @@ export const AdminStudentsPage = () => {
   useEffect(load, [filters]);
 
   const createStudent = async (payload) => {
+    // Handle bulk/paste import
+    if (payload.type === 'bulk' || payload.type === 'paste') {
+      setCreateBusy(true);
+      setCreateErrors({});
+      try {
+        const { data } = await api.post('/students/bulk', { students: payload.students });
+        const result = data.data;
+        const totalCreated = result.created || 0;
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Import Successful',
+          text: `${totalCreated} student${totalCreated !== 1 ? 's' : ''} imported successfully.`,
+          confirmButtonColor: 'var(--primary)',
+          confirmButtonText: 'OK'
+        });
+
+        if (result.errors && result.errors.length > 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Import Completed with Warnings',
+            html: `<div class="text-start">${result.errors.map((e) => `<div class="mb-1">• Row ${e.row}: ${e.name || ''} — ${e.errors.join(', ')}</div>`).join('')}</div>`,
+            confirmButtonText: 'OK'
+          });
+        }
+
+        setShowCreate(false);
+        load();
+      } catch (err) {
+        const errData = err.response?.data;
+        if (errData?.errors && Array.isArray(errData.errors)) {
+          const html = errData.errors.map((e) => `<div class="mb-1">• Row ${e.row}: ${e.name || ''} — ${e.errors.join(', ')}</div>`).join('');
+          Swal.fire({
+            icon: 'error',
+            title: 'Import Failed',
+            html: `<div class="text-start">${html}</div>`,
+            confirmButtonText: 'OK'
+          });
+        } else {
+          setCreateErrors({ api: errData?.message || 'Failed to import' });
+        }
+      } finally {
+        setCreateBusy(false);
+      }
+      return;
+    }
+
+    // Single student (existing workflow)
     setCreateBusy(true);
     setCreateErrors({});
     try {
@@ -58,7 +103,6 @@ export const AdminStudentsPage = () => {
       delete payload.lastLoginAt;
       delete payload.__v;
       delete payload.refreshTokenHash;
-      // Only send password if admin entered a new one
       if (!payload.password || !payload.password.trim()) {
         delete payload.password;
       }
@@ -93,12 +137,18 @@ export const AdminStudentsPage = () => {
     }
   };
 
+  const handleOpenCreate = () => {
+    setShowCreate(true);
+    setCreateSuccess(null);
+    setCreateErrors({});
+  };
+
   return (
     <>
       <PageHeader
         title="Student Management"
         subtitle={`${students.total} students registered.`}
-        action={<button className="btn btn-primary" onClick={() => { setShowCreate(true); setCreateSuccess(null); setCreateErrors({}); }}><i className="bi bi-plus-lg me-2" />Create Student</button>}
+        action={<button className="btn btn-primary" onClick={handleOpenCreate}><i className="bi bi-plus-lg me-2" />Create Student</button>}
       />
       <div className="surface p-3 mb-3">
         <div className="row g-2">
@@ -186,7 +236,7 @@ export const AdminStudentsPage = () => {
         show={showCreate}
         title="Create Student"
         onClose={() => { setShowCreate(false); setCreateSuccess(null); }}
-        width="550px"
+        width="660px"
       >
         {createSuccess ? (
           <div>
@@ -202,7 +252,7 @@ export const AdminStudentsPage = () => {
         ) : (
           <div>
             {createErrors.api && <div className="alert alert-danger">{createErrors.api}</div>}
-            <StudentCreateForm onSubmit={createStudent} onClose={() => setShowCreate(false)} busy={createBusy} />
+            <StudentCreateFormModal onSubmit={createStudent} onClose={() => setShowCreate(false)} busy={createBusy} />
           </div>
         )}
       </Drawer>

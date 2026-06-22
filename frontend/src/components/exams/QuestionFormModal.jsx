@@ -1,114 +1,73 @@
 import { useEffect, useState } from 'react';
-import { Modal } from '../common/Modal.jsx';
+import { QuestionForm } from './QuestionForm.jsx';
+import { BulkImportForm } from './BulkImportForm.jsx';
+import { PasteQuestionsForm } from './PasteQuestionsForm.jsx';
 
-const blank = {
-  title: '',
-  type: 'mcq',
-  options: [{ text: '' }, { text: '' }, { text: '' }, { text: '' }],
-  correctOption: 0,
-  marks: 1,
-  subject: 'A',
-  explanation: ''
-};
+const TABS = [
+  { key: 'single', label: 'Single Question', icon: 'bi-pencil-square' },
+  { key: 'bulk', label: 'Bulk Import', icon: 'bi-file-earmark-spreadsheet' },
+  { key: 'paste', label: 'Paste Questions', icon: 'bi-clipboard-data' }
+];
 
-export const QuestionFormModal = ({ show, question, onClose, onSubmit, busy }) => {
-  const [form, setForm] = useState(blank);
-  const [errors, setErrors] = useState({});
+export const QuestionFormModal = ({ question, onSubmit, onClose, busy, isLocked }) => {
+  const isEditing = Boolean(question?._id);
+  const [activeTab, setActiveTab] = useState('single');
 
+  // When editing, force single tab and hide the tab bar
   useEffect(() => {
-    if (question) {
-      const opts = question.options?.length === 4 ? question.options : blank.options;
-      setForm({ ...blank, ...question, options: opts });
-    } else {
-      setForm(blank);
-    }
-    setErrors({});
-  }, [question, show]);
+    if (isEditing) setActiveTab('single');
+  }, [isEditing]);
 
-  const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
-
-  const updateOption = (index, value) => {
-    const options = [...form.options];
-    options[index] = { text: value };
-    setForm((current) => ({ ...current, options }));
+  const handleBulkSubmit = (questions) => {
+    onSubmit({ type: 'bulk', questions });
   };
 
-  const submit = (event) => {
-    event.preventDefault();
-    const nextErrors = {};
-    if (!form.title || form.title.trim().length < 2) nextErrors.title = 'Question text is required';
-    if (!form.subject) nextErrors.subject = 'Subject is required';
-    if (!form.marks || form.marks < 1) nextErrors.marks = 'Marks must be at least 1';
-    const emptyOptions = form.options.some((opt) => !opt.text?.trim());
-    if (emptyOptions) nextErrors.options = 'All options must have text';
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) return;
-
-    const payload = {
-      ...form,
-      marks: Number(form.marks),
-      correctOption: Number(form.correctOption)
-    };
-    onSubmit(payload);
+  const handlePasteSubmit = (questions) => {
+    onSubmit({ type: 'paste', questions });
   };
 
   return (
-    <Modal
-      show={show}
-      title={question?._id ? 'Edit Question' : 'New Question'}
-      size="lg"
-      onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn btn-primary" disabled={busy} form="question-form">
-            {busy ? 'Saving...' : 'Save Question'}
-          </button>
-        </>
-      }
-    >
-      <form id="question-form" onSubmit={submit}>
-        <div className="row g-3">
-          <div className="col-12">
-            <label className="form-label" htmlFor="title">Question Text</label>
-            <textarea id="title" name="title" className={`form-control ${errors.title ? 'is-invalid' : ''}`} rows="2" value={form.title} onChange={updateField} />
-            <div className="invalid-feedback">{errors.title}</div>
-          </div>
-          {/* <div className="col-md-4">
-            <label className="form-label" htmlFor="subject">Subject</label>
-            <input id="subject" name="subject" className={`form-control ${errors.subject ? 'is-invalid' : ''}`} value={form.subject} onChange={updateField} />
-            <div className="invalid-feedback">{errors.subject}</div>
-          </div> */}
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="marks">Marks</label>
-            <input id="marks" name="marks" type="number" className={`form-control ${errors.marks ? 'is-invalid' : ''}`} value={form.marks} onChange={updateField} />
-            <div className="invalid-feedback">{errors.marks}</div>
-          </div>
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="correctOption">Correct Option</label>
-            <select id="correctOption" name="correctOption" className="form-select" value={form.correctOption} onChange={(e) => setForm({ ...form, correctOption: Number(e.target.value) })}>
-              <option value={0}>Option 1</option>
-              <option value={1}>Option 2</option>
-              <option value={2}>Option 3</option>
-              <option value={3}>Option 4</option>
-            </select>
-          </div>
-          <div className="col-12">
-            <label className="form-label">Options {errors.options && <span className="text-danger small">({errors.options})</span>}</label>
-            {form.options.map((opt, i) => (
-              <div className="input-group mb-2" key={i}>
-                <span className="input-group-text">{i + 1}</span>
-                <input className={`form-control ${form.correctOption === i ? 'border-success' : ''}`} value={opt.text} onChange={(e) => updateOption(i, e.target.value)} placeholder={`Option ${i + 1}`} />
-                {form.correctOption === i && <span className="input-group-text bg-success text-white"><i className="bi bi-check-lg" /></span>}
-              </div>
-            ))}
-          </div>
-          <div className="col-12">
-            <label className="form-label" htmlFor="explanation">Explanation (optional)</label>
-            <textarea id="explanation" name="explanation" className="form-control" rows="2" value={form.explanation} onChange={updateField} />
-          </div>
+    <div>
+      {/* Tabs - hidden when editing a question */}
+      {!isEditing && (
+        <div className="d-flex border-bottom mb-4 gap-0">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`btn btn-sm px-4 py-2 rounded-0 fw-semibold position-relative ${activeTab === tab.key ? 'text-primary' : 'text-secondary'}`}
+              style={{
+                border: 'none',
+                borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent',
+                background: 'none',
+                transition: 'var(--transition)',
+                opacity: isLocked && tab.key !== 'single' ? 0.5 : 1
+              }}
+              onClick={() => {
+                if (isLocked && tab.key !== 'single') return;
+                setActiveTab(tab.key);
+              }}
+              disabled={isLocked && tab.key !== 'single'}
+            >
+              <i className={`bi ${tab.icon} me-2`} />
+              {tab.label}
+            </button>
+          ))}
         </div>
-      </form>
-    </Modal>
+      )}
+
+      {/* Tab content */}
+      <div className="question-form-tab-content">
+        {activeTab === 'single' && (
+          <QuestionForm question={question} onSubmit={onSubmit} onClose={onClose} busy={busy} />
+        )}
+        {activeTab === 'bulk' && (
+          <BulkImportForm onSubmit={handleBulkSubmit} onClose={onClose} busy={busy} />
+        )}
+        {activeTab === 'paste' && (
+          <PasteQuestionsForm onSubmit={handlePasteSubmit} onClose={onClose} busy={busy} />
+        )}
+      </div>
+    </div>
   );
 };

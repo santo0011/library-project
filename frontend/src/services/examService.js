@@ -53,5 +53,15 @@ export const examService = {
   async deleteQuestion(id) {
     const { data } = await api.delete(`/exams/all/questions/${id}`);
     return data;
+  },
+
+  async bulkImport(id, questions) {
+    const { data } = await api.post(`/exams/${id}/questions/bulk`, { questions });
+    return data.data;
+  },
+
+  async bulkDelete(id, questionIds) {
+    const { data } = await api.post(`/exams/${id}/questions/bulk-delete`, { questionIds });
+    return data;
   }
 };
