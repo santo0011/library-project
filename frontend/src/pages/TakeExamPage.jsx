@@ -4,6 +4,43 @@ import { api } from '../services/api.js';
 
 const QUESTION_TIMER = 30;
 const REVIEW_TIMER = 60;
+const STORAGE_PREFIX = 'exam_';
+
+const getStorageKey = (examId, key) => `${STORAGE_PREFIX}${examId}_${key}`;
+
+// Calculate remaining seconds from stored start time
+const calcRemainingFromStorage = (examId) => {
+  try {
+    const raw = localStorage.getItem(getStorageKey(examId, 'state'));
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    if (!state.startTime || !state.durationMinutes) return null;
+
+    const elapsedSeconds = Math.floor((Date.now() - new Date(state.startTime).getTime()) / 1000);
+    const totalSeconds = state.durationMinutes * 60;
+    const remaining = Math.max(0, totalSeconds - elapsedSeconds);
+
+    return {
+      remaining,
+      isExpired: remaining <= 0,
+      state
+    };
+  } catch {
+    return null;
+  }
+};
+
+const saveState = (examId, data) => {
+  try {
+    localStorage.setItem(getStorageKey(examId, 'state'), JSON.stringify(data));
+  } catch { /* ignore */ }
+};
+
+const clearExamStorage = (examId) => {
+  try {
+    localStorage.removeItem(getStorageKey(examId, 'state'));
+  } catch { /* ignore */ }
+};
 
 export const TakeExamPage = () => {
   const { id } = useParams();
@@ -13,25 +50,210 @@ export const TakeExamPage = () => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIMER);
+  const [overallTimeLeft, setOverallTimeLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [phase, setPhase] = useState('loading'); // loading | exam | review
+  const [phase, setPhase] = useState('loading'); // loading | exam | review | submitted
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [overallExpired, setOverallExpired] = useState(false);
   const timerRef = useRef(null);
+  const overallTimerRef = useRef(null);
+  const initialisedRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
 
+  const submitExam = useCallback(async () => {
+    if (submitting || hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+    setSubmitting(true);
+    setShowSubmitConfirm(false);
+    try {
+      await api.post(`/students/exams/${id}/submit`);
+      clearExamStorage(id);
+      navigate('/student/exams', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit');
+      setSubmitting(false);
+      hasSubmittedRef.current = false;
+    }
+  }, [id, navigate, submitting]);
+
+  const clearAllTimers = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    timerRef.current = null;
+    overallTimerRef.current = null;
+  }, []);
+
+  const goToReview = useCallback(() => {
+    clearAllTimers();
+    setOverallExpired(true);
+    setPhase('review');
+    setTimeLeft(REVIEW_TIMER);
+    // Update stored state
+    const stored = calcRemainingFromStorage(id);
+    if (stored) {
+      saveState(id, { ...stored.state, overallExpired: true, phase: 'review' });
+    }
+  }, [clearAllTimers, id]);
+
+  // Overall exam timer - runs during both exam and review (if not expired)
   useEffect(() => {
+    if (loading || submitting || overallExpired) return;
+    if (phase !== 'exam' && phase !== 'review') return;
+
+    overallTimerRef.current = setInterval(() => {
+      const stored = calcRemainingFromStorage(id);
+      if (!stored) return;
+
+      if (stored.isExpired) {
+        clearInterval(overallTimerRef.current);
+        overallTimerRef.current = null;
+        setOverallTimeLeft(0);
+        setTimeout(() => goToReview(), 0);
+      } else {
+        setOverallTimeLeft(stored.remaining);
+      }
+    }, 1000);
+
+    return () => {
+      if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    };
+  }, [phase, loading, submitting, id, goToReview]);
+
+  // Question timer - just counts down; transitions are handled by a watcher effect
+  useEffect(() => {
+    if (phase !== 'exam' || loading || submitting || overallExpired || questions.length === 0) return;
+    if (timeLeft <= 0) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [phase, loading, submitting, overallExpired, questions.length]);
+
+  // Watch for question timer expiry -> move to next question or go to review (NOT submit)
+  useEffect(() => {
+    if (timeLeft > 0 || phase !== 'exam' || loading || submitting || overallExpired) return;
+
+    if (currentIdx < questions.length - 1) {
+      const nextIdx = currentIdx + 1;
+      setCurrentIdx(nextIdx);
+      setTimeLeft(exam?.questionTimerSeconds || QUESTION_TIMER);
+    } else {
+      // Last question - go to review page (NOT submit)
+      setPhase('review');
+      setTimeLeft(REVIEW_TIMER);
+    }
+  }, [timeLeft, phase, loading, submitting, overallExpired, currentIdx, questions.length, exam?.questionTimerSeconds]);
+
+  // Review countdown timer - just counts down; submit is handled by watcher
+  useEffect(() => {
+    if (phase !== 'review' || loading || submitting || timeLeft <= 0 || !overallExpired) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [phase, loading, submitting, overallExpired]);
+
+  // Watch for review timer expiry -> auto-submit exam (ONLY when overall expired)
+  useEffect(() => {
+    if (timeLeft > 0 || phase !== 'review' || loading || submitting || !overallExpired) return;
+
+    submitExam();
+  }, [timeLeft, phase, loading, submitting, overallExpired, submitExam]);
+
+  // Initial load - resume from localStorage or start fresh via POST
+  useEffect(() => {
+    if (initialisedRef.current) return;
+    initialisedRef.current = true;
+
+    const tryResume = () => {
+      const stored = calcRemainingFromStorage(id);
+      if (!stored) return null;
+      const s = stored.state;
+
+      // If already submitted, redirect
+      if (s.phase === 'submitted') {
+        navigate('/student/exams', { replace: true });
+        return 'redirected';
+      }
+
+      return { stored, s };
+    };
+
+    const result = tryResume();
+    if (result === 'redirected') return;
+
+    if (result) {
+      const { stored, s } = result;
+
+      // Restore exam data from localStorage (no API call needed)
+      setExam(s.exam || null);
+      setQuestions(s.questions || []);
+      setAnswers(s.answers || {});
+      setCurrentIdx(s.currentIdx || 0);
+
+      if (s.overallExpired || stored.isExpired) {
+        // Time already expired or was marked expired
+        setOverallExpired(true);
+        setPhase('review');
+        setTimeLeft(REVIEW_TIMER);
+        setOverallTimeLeft(0);
+        setLoading(false);
+        saveState(id, { ...s, overallExpired: true, phase: 'review' });
+      } else {
+        // Resume normally
+        setOverallTimeLeft(stored.remaining);
+        setTimeLeft(s.questionTimerSeconds || QUESTION_TIMER);
+        setPhase('exam');
+        setLoading(false);
+        saveState(id, { ...s, phase: 'exam' });
+      }
+      return;
+    }
+
+    // Fresh start - no stored data
     api.post(`/students/exams/${id}/start`)
       .then((res) => {
         const sub = res.data.data;
-        setExam(sub.exam);
+        const durationMinutes = sub.exam.durationMinutes || 60;
         const qs = sub.exam.questions || [];
+
+        const stateData = {
+          startTime: new Date().toISOString(),
+          durationMinutes,
+          questionTimerSeconds: sub.exam.questionTimerSeconds || QUESTION_TIMER,
+          exam: sub.exam,
+          questions: qs,
+          answers: {},
+          currentIdx: 0,
+          phase: 'exam',
+          overallExpired: false
+        };
+
+        saveState(id, stateData);
+
+        setExam(sub.exam);
         setQuestions(qs);
         setCurrentIdx(sub.currentQuestionIndex || 0);
         const saved = {};
         (sub.answers || []).forEach((a) => { saved[a.question] = a.selectedOption; });
         setAnswers(saved);
+        // Also save initial answers from API
+        if (Object.keys(saved).length > 0) {
+          stateData.answers = saved;
+          saveState(id, stateData);
+        }
         setTimeLeft(sub.exam.questionTimerSeconds || QUESTION_TIMER);
+        setOverallTimeLeft(durationMinutes * 60);
         setLoading(false);
         setPhase('exam');
       })
@@ -39,73 +261,65 @@ export const TakeExamPage = () => {
         setError(err.response?.data?.message || 'Failed to start exam');
         setLoading(false);
       });
-  }, [id]);
+  }, [id, navigate]);
 
-  const submitExam = useCallback(async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    setShowSubmitConfirm(false);
-    try {
-      await api.post(`/students/exams/${id}/submit`);
-      navigate('/student/exams', { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit');
-      setSubmitting(false);
-    }
-  }, [id, navigate, submitting]);
-
-  // Question timer - auto-advance or go to review
+  // Disable browser back when exam ends
   useEffect(() => {
-    if (phase !== 'exam' || loading || submitting || timeLeft <= 0 || questions.length === 0) return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          if (currentIdx < questions.length - 1) {
-            // Move to next question
-            const nextIdx = currentIdx + 1;
-            setCurrentIdx(nextIdx);
-            return exam?.questionTimerSeconds || QUESTION_TIMER;
-          } else {
-            // Last question - go to review screen
-            setPhase('review');
-            return REVIEW_TIMER;
-          }
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [phase, currentIdx, loading, submitting, questions.length, exam?.questionTimerSeconds]);
-
-  // Review timer - auto-submit
-  useEffect(() => {
-    if (phase !== 'review' || loading || submitting || timeLeft <= 0) return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          submitExam();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [phase, loading, submitting, submitExam, timeLeft]);
+    if (!overallExpired) return;
+    const handlePopState = (e) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.pathname);
+    };
+    window.history.pushState(null, '', window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [overallExpired]);
 
   const handleSelectOption = async (questionId, optionIndex) => {
+    if (overallExpired) return;
     const newAns = { ...answers, [questionId]: optionIndex };
     setAnswers(newAns);
+    // Persist answers to localStorage
+    const stored = calcRemainingFromStorage(id);
+    if (stored) {
+      saveState(id, { ...stored.state, answers: newAns });
+    }
     try {
       await api.post(`/students/exams/${id}/answer`, { questionId, selectedOption: optionIndex });
     } catch (e) { /* silently save */ }
   };
 
   const goToQuestion = (idx) => {
+    if (overallExpired) return;
     if (idx < 0 || idx >= questions.length) return;
     setCurrentIdx(idx);
     setTimeLeft(exam?.questionTimerSeconds || QUESTION_TIMER);
+    const stored = calcRemainingFromStorage(id);
+    if (stored) {
+      saveState(id, { ...stored.state, currentIdx: idx });
+    }
+  };
+
+  const handleGoToReview = useCallback(() => {
+    setPhase('review');
+    setTimeLeft(REVIEW_TIMER);
+    const stored = calcRemainingFromStorage(id);
+    if (stored) {
+      saveState(id, { ...stored.state, phase: 'review', overallExpired: false });
+    }
+  }, [id]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const getOverallTimerColor = () => {
+    if (overallExpired) return 'danger';
+    if (overallTimeLeft <= 60) return 'danger';
+    if (overallTimeLeft <= 300) return 'warning';
+    return 'primary';
   };
 
   // Loading screen
@@ -166,17 +380,37 @@ export const TakeExamPage = () => {
     const unansweredCount = questions.length - answeredCount;
     return (
       <div className="min-vh-100 d-flex flex-column" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        {overallExpired && (
+          <div className="px-3 px-lg-4 py-3 text-white" style={{ background: 'rgba(220, 38, 38, 0.85)' }}>
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-clock-history fs-5" />
+              <span className="fw-semibold">
+                Exam time has expired. Please review your answers. Your exam will be submitted automatically in {timeLeft} second{timeLeft !== 1 ? 's' : ''}.
+              </span>
+            </div>
+          </div>
+        )}
         <div className="px-3 px-lg-4 py-3 d-flex align-items-center justify-content-between text-white">
           <div>
             <h5 className="fw-bold mb-0">{exam?.name}</h5>
             <small className="opacity-75">Review & Submit</small>
           </div>
-          <div className="d-flex align-items-center gap-3">
-            <div className="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-20">
-              <i className={`bi ${timeLeft <= 10 ? 'bi-clock text-warning' : 'bi-clock'}`} />
-              <span className={`fw-bold ${timeLeft <= 10 ? 'text-warning' : ''}`}>{timeLeft}s</span>
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            {/* Overall Exam Timer */}
+            <div className={`d-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold shadow-sm ${overallExpired ? 'bg-danger text-white' : overallTimeLeft <= 60 ? 'bg-danger text-white timer-pulse' : overallTimeLeft <= 300 ? 'bg-warning text-dark' : 'bg-dark bg-opacity-25 text-white'}`}>
+              <i className={`bi ${overallTimeLeft <= 60 ? 'bi-clock-fill' : 'bi-clock'}`} />
+              <span className="fw-bold">{formatTime(overallTimeLeft)}</span>
+              <small className="opacity-75 ms-1 d-none d-sm-inline">Overall</small>
             </div>
-            <small className="opacity-75">Auto-submits when timer expires</small>
+            {overallExpired && (
+              <>
+                <div className="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger text-white shadow-sm">
+                  <i className="bi bi-clock-fill" />
+                  <span className="fw-bold">{timeLeft}s</span>
+                  <small className="opacity-75 ms-1 d-none d-sm-inline">Auto-submit</small>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -252,9 +486,12 @@ export const TakeExamPage = () => {
 
                 {/* Submit button */}
                 <div className="d-flex justify-content-between">
-                  <button className="btn btn-outline-secondary rounded-pill px-4" onClick={() => { setPhase('exam'); setTimeLeft(exam?.questionTimerSeconds || QUESTION_TIMER); }}>
-                    <i className="bi bi-arrow-left me-1" /> Back to Exam
-                  </button>
+                  {!overallExpired && (
+                    <button className="btn btn-outline-secondary rounded-pill px-4" onClick={() => { setPhase('exam'); setTimeLeft(exam?.questionTimerSeconds || QUESTION_TIMER); }}>
+                      <i className="bi bi-arrow-left me-1" /> Back to Exam
+                    </button>
+                  )}
+                  {overallExpired && <div />}
                   <button className="btn btn-primary rounded-pill px-5 shadow" onClick={() => setShowSubmitConfirm(true)} disabled={submitting}>
                     {submitting ? 'Submitting...' : 'Submit Exam'}
                     <i className="bi bi-check2 ms-2" />
@@ -307,34 +544,66 @@ export const TakeExamPage = () => {
   const currentQuestion = questions[currentIdx];
   const progressPct = Math.round((answeredCount / questions.length) * 100);
   const timerPct = (timeLeft / (exam?.questionTimerSeconds || QUESTION_TIMER)) * 100;
+  const overallPct = ((exam?.durationMinutes || 60) * 60) > 0
+    ? (overallTimeLeft / ((exam?.durationMinutes || 60) * 60)) * 100
+    : 100;
+  const isOverallWarning = overallTimeLeft <= 300;
+  const isOverallCritical = overallTimeLeft <= 60;
 
   return (
     <div className="min-vh-100 d-flex flex-column" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      {/* Top Bar */}
-      <div className="bg-white shadow-sm px-3 px-lg-4 py-3">
+      {/* Sticky Timer Bar - Always visible */}
+      <div className="bg-white shadow-sm px-3 px-lg-4 py-3 sticky-top">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div>
             <h5 className="fw-bold mb-0">{exam?.name}</h5>
             <small className="text-secondary">Question {currentIdx + 1} of {questions.length}</small>
           </div>
-          <div className="d-flex align-items-center gap-3">
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            {/* Overall Exam Timer */}
+            <div
+              className={`d-flex align-items-center gap-2 px-3 py-1 rounded-pill border fw-bold ${overallExpired ? 'bg-danger text-white border-danger' : isOverallCritical ? 'bg-danger text-white border-danger timer-pulse' : isOverallWarning ? 'bg-warning bg-opacity-10 text-warning border-warning' : 'bg-primary bg-opacity-10 text-primary border-primary'}`}
+              style={{ minWidth: 90, transition: 'all 0.3s ease' }}
+              title="Overall exam time remaining"
+            >
+              <i className={`bi ${isOverallCritical ? 'bi-clock-fill' : isOverallWarning ? 'bi-clock' : 'bi-clock'} ${isOverallCritical ? 'text-white' : ''}`} />
+              <span className="fw-bold">{formatTime(overallTimeLeft)}</span>
+              <small className="opacity-75 ms-1 d-none d-sm-inline">Overall</small>
+            </div>
+
+            {/* Question Timer */}
+            <div className="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border" style={{ minWidth: 80 }}>
+              <i className={`bi ${timeLeft <= 5 ? 'bi-clock text-danger' : 'bi-clock text-primary'}`} />
+              <span className={`fw-bold ${timeLeft <= 5 ? 'text-danger' : 'text-primary'}`}>
+                {formatTime(timeLeft)}
+              </span>
+              <small className="opacity-75 text-secondary ms-1 d-none d-sm-inline">Question</small>
+            </div>
+
             <div className="d-flex align-items-center gap-2">
               <i className="bi bi-check-circle text-success" />
               <span className="small fw-medium">{answeredCount}/{questions.length}</span>
             </div>
-            <div className="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border" style={{ minWidth: 80 }}>
-              <i className={`bi ${timeLeft <= 5 ? 'bi-clock text-danger' : 'bi-clock text-primary'}`} />
-              <span className={`fw-bold ${timeLeft <= 5 ? 'text-danger' : 'text-primary'}`}>{timeLeft}s</span>
-            </div>
-            <button className="btn btn-outline-primary btn-sm rounded-pill px-3" onClick={() => { setPhase('review'); setTimeLeft(REVIEW_TIMER); }}>
-              <i className="bi bi-eye me-1" /> Review All
-            </button>
+            {!overallExpired && (
+              <button className="btn btn-outline-primary btn-sm rounded-pill px-3" onClick={handleGoToReview}>
+                <i className="bi bi-eye me-1" /> Review All
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* Overall Timer Progress Bar */}
+        <div className="progress rounded-0 mt-2" style={{ height: 4 }}>
+          <div
+            className={`progress-bar ${isOverallCritical ? 'bg-danger' : isOverallWarning ? 'bg-warning' : 'bg-primary'}`}
+            role="progressbar"
+            style={{ width: `${overallPct}%`, transition: 'width 1s linear' }}
+          />
         </div>
       </div>
 
-      {/* Timer Bar */}
-      <div className="progress rounded-0" style={{ height: 4 }}>
+      {/* Question Timer Bar */}
+      <div className="progress rounded-0" style={{ height: 3 }}>
         <div className={`progress-bar ${timeLeft <= 5 ? 'bg-danger' : 'bg-primary'}`}
           role="progressbar" style={{ width: `${timerPct}%`, transition: 'width 1s linear' }} />
       </div>
@@ -398,13 +667,19 @@ export const TakeExamPage = () => {
               </div>
 
               <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                <button className="btn btn-outline-secondary rounded-pill px-4" disabled={currentIdx === 0} onClick={() => goToQuestion(currentIdx - 1)}>
+                <button className="btn btn-outline-secondary rounded-pill px-4" disabled={currentIdx === 0 || overallExpired} onClick={() => goToQuestion(currentIdx - 1)}>
                   <i className="bi bi-chevron-left me-1" /> Previous
                 </button>
-                <button className="btn btn-primary rounded-pill px-4 shadow-sm" onClick={() => goToQuestion(currentIdx + 1)}>
-                  {currentIdx < questions.length - 1 ? 'Next' : 'Finish'}
-                  <i className="bi bi-chevron-right ms-1" />
-                </button>
+                {currentIdx < questions.length - 1 ? (
+                  <button className="btn btn-primary rounded-pill px-4 shadow-sm" disabled={overallExpired} onClick={() => goToQuestion(currentIdx + 1)}>
+                    Next
+                    <i className="bi bi-chevron-right ms-1" />
+                  </button>
+                ) : (
+                  <button className="btn btn-outline-primary rounded-pill px-4 shadow-sm" disabled={overallExpired} onClick={handleGoToReview}>
+                    <i className="bi bi-eye me-1" /> Review All
+                  </button>
+                )}
               </div>
             </div>
           </div>

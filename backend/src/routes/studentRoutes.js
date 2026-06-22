@@ -21,6 +21,7 @@ studentRoutes.get('/dashboard', authenticate, authorizeRoles('Student'), student
 studentRoutes.get('/stats', authenticate, authorizePermissions(Permissions.DASHBOARD_READ), studentController.stats);
 studentRoutes.get('/', authenticate, authorizePermissions(Permissions.STUDENTS_READ), studentController.list);
 studentRoutes.post('/', authenticate, authorizePermissions(Permissions.STUDENTS_WRITE), createStudentValidation, validateRequest, studentController.create);
+studentRoutes.post('/bulk', authenticate, authorizePermissions(Permissions.STUDENTS_WRITE), studentController.bulkCreate);
 // Submissions must come before /:id to avoid route conflict
 studentRoutes.get('/:studentId/submissions', authenticate, authorizePermissions(Permissions.RESULTS_READ), studentController.getStudentSubmissions);
 studentRoutes.get('/:id', authenticate, authorizePermissions(Permissions.STUDENTS_READ), studentController.getById);

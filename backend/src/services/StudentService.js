@@ -29,6 +29,96 @@ class StudentService {
     return student;
   }
 
+  async bulkCreate(students) {
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      throw new AppError('No students provided', StatusCodes.BAD_REQUEST);
+    }
+
+    const errors = [];
+    const validStudents = [];
+    const emailsSeen = new Set();
+    const mobilesSeen = new Set();
+
+    // Validate each student
+    for (let i = 0; i < students.length; i++) {
+      const s = students[i];
+      const rowNum = i + 1;
+      const rowErrors = [];
+      const name = (s.name || '').trim();
+      const email = (s.email || '').trim().toLowerCase();
+      const password = s.password || '';
+      const mobile = (s.mobile || '').trim();
+      const gender = s.gender || 'Male';
+      const dateOfBirth = s.dateOfBirth || '';
+
+      if (!name || name.length < 2) rowErrors.push('Full Name is required (min 2 chars)');
+      if (!email) rowErrors.push('Email is required');
+      if (!password || password.length < 6) rowErrors.push('Password must be at least 6 characters');
+      if (!mobile) rowErrors.push('Mobile Number is required');
+
+      if (email && emailsSeen.has(email)) rowErrors.push(`Duplicate email within import: ${email}`);
+      if (mobile && mobilesSeen.has(mobile)) rowErrors.push(`Duplicate mobile within import: ${mobile}`);
+
+      if (rowErrors.length > 0) {
+        errors.push({ row: rowNum, name, email, errors: rowErrors });
+      } else {
+        emailsSeen.add(email);
+        mobilesSeen.add(mobile);
+        validStudents.push({ name, email, password, mobile, gender, dateOfBirth, rowNum });
+      }
+    }
+
+    // Check existing emails and mobiles in DB
+    if (validStudents.length > 0) {
+      const existingEmails = await userRepository.model.find({
+        email: { $in: validStudents.map((s) => s.email) }
+      }).select('email mobile');
+      const existingEmailSet = new Set(existingEmails.map((e) => e.email));
+
+      for (const s of validStudents) {
+        if (existingEmailSet.has(s.email)) {
+          const existing = await userRepository.findOne({ email: s.email });
+          if (existing) {
+            errors.push({ row: s.rowNum, name: s.name, email: s.email, errors: ['Email is already registered in the system'] });
+            s.valid = false;
+          }
+        }
+      }
+    }
+
+    // Filter out invalid from validStudents
+    const toCreate = validStudents.filter((s) => s.valid !== false);
+
+    if (errors.length > 0 && toCreate.length === 0) {
+      return { errors, created: 0, students: [] };
+    }
+
+    if (errors.length > 0) {
+      // Return errors along with partial result if some are valid
+    }
+
+    // Create students - password will be hashed by User model pre-save hook
+    const created = [];
+    for (const s of toCreate) {
+      const studentId = await this.generateStudentId();
+      const student = await userRepository.create({
+        name: s.name,
+        email: s.email,
+        password: s.password,
+        mobile: s.mobile,
+        gender: s.gender,
+        dateOfBirth: s.dateOfBirth || undefined,
+        studentId,
+        role: Roles.STUDENT,
+        permissions: defaultRolePermissions[Roles.STUDENT],
+        status: 'active'
+      });
+      created.push(student);
+    }
+
+    return { created: created.length, students: created, errors: errors.length > 0 ? errors : undefined };
+  }
+
   async list(query) {
     const filter = { role: Roles.STUDENT };
     if (query.status) filter.status = query.status;

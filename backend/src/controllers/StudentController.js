@@ -9,6 +9,12 @@ class StudentController {
     res.status(StatusCodes.CREATED).json({ success: true, data });
   });
 
+  bulkCreate = asyncHandler(async (req, res) => {
+    const { students } = req.body;
+    const result = await studentService.bulkCreate(students);
+    res.status(StatusCodes.CREATED).json({ success: true, data: result });
+  });
+
   list = asyncHandler(async (req, res) => {
     const data = await studentService.list(req.query);
     res.status(StatusCodes.OK).json({ success: true, data });

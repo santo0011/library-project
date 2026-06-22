@@ -74,6 +74,43 @@ class ExamController {
     res.status(StatusCodes.OK).json({ success: true, message: 'Question deleted' });
   });
 
+  bulkDeleteQuestions = asyncHandler(async (req, res) => {
+    const examId = req.params.id;
+    const { questionIds } = req.body;
+
+    if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {
+      throw new AppError('No question IDs provided', StatusCodes.BAD_REQUEST);
+    }
+
+    const exam = await examRepository.model.findById(examId);
+    if (!exam) throw new AppError('Exam not found', StatusCodes.NOT_FOUND);
+
+    const submissionCount = await submissionRepository.model.countDocuments({ exam: examId });
+    if (submissionCount > 0) {
+      throw new AppError('This exam has already been attempted by students. Questions can no longer be deleted.', StatusCodes.FORBIDDEN);
+    }
+
+    // Check each question is part of this exam and not locked by other exams
+    for (const qId of questionIds) {
+      await this.checkQuestionLocked(qId);
+    }
+
+    // Delete questions
+    await questionRepository.model.deleteMany({ _id: { $in: questionIds } });
+
+    // Remove question IDs from exam (questions are ObjectIds when not populated)
+    const remainingQuestionIds = (exam.questions || [])
+      .map((q) => (q._id ? q._id.toString() : q.toString()))
+      .filter((qId) => !questionIds.includes(qId));
+    await examRepository.updateById(examId, { questions: remainingQuestionIds });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: `${questionIds.length} question(s) deleted successfully`,
+      data: { deleted: questionIds.length }
+    });
+  });
+
   bulkImportQuestions = asyncHandler(async (req, res) => {
     const examId = req.params.id;
     const { questions } = req.body;

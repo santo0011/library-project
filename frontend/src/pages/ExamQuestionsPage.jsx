@@ -17,6 +17,7 @@ export const ExamQuestionsPage = () => {
   const [deleting, setDeleting] = useState(null);
   const [busy, setBusy] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const load = () => {
     setLoading(true);
@@ -33,6 +34,28 @@ export const ExamQuestionsPage = () => {
   };
 
   useEffect(load, [id]);
+
+  // Reset selection when questions change
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [questions]);
+
+  const allQuestionIds = (exam?.questions || []).map((q) => q._id);
+  const allSelected = allQuestionIds.length > 0 && selectedIds.length === allQuestionIds.length;
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds([...allQuestionIds]);
+    }
+  };
+
+  const handleSelectOne = (qId) => {
+    setSelectedIds((prev) =>
+      prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId]
+    );
+  };
 
   const handleLockedAction = (action = '') => {
     Swal.fire({
@@ -69,6 +92,55 @@ export const ExamQuestionsPage = () => {
       return;
     }
     setDeleting(q);
+  };
+
+  const handleBulkDelete = () => {
+    if (isLocked) {
+      handleLockedAction('deleted');
+      return;
+    }
+    if (selectedIds.length === 0) return;
+
+    Swal.fire({
+      title: 'Delete Selected Questions?',
+      text: 'Are you sure you want to delete the selected question(s)? This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#dc2626',
+      reverseButtons: true,
+      focusCancel: true
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setBusy(true);
+        try {
+          await examService.bulkDelete(id, selectedIds);
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `${selectedIds.length} question(s) deleted successfully`,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            backdrop: false,
+            heightAuto: false
+          });
+          setSelectedIds([]);
+          load();
+        } catch (err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Delete Failed',
+            text: err.response?.data?.message || err.message || 'An unexpected error occurred.',
+            confirmButtonText: 'OK'
+          });
+        } finally {
+          setBusy(false);
+        }
+      }
+    });
   };
 
   const saveQuestion = async (payload) => {
@@ -141,35 +213,87 @@ export const ExamQuestionsPage = () => {
   if (loading) return <div className="surface p-4">Loading...</div>;
   if (!exam) return <div className="alert alert-danger">Exam not found</div>;
 
+  const questionList = exam.questions || [];
+
   return (
     <>
       <PageHeader
         title={`Questions: ${exam.name}`}
-        subtitle={`${questions.total || exam.questions?.length || 0} questions • ${exam.questionTimerSeconds}s per question timer`}
+        subtitle={`${questions.total || questionList.length || 0} questions • ${exam.questionTimerSeconds}s per question timer`}
         action={
-          <button className="btn btn-primary" type="button" onClick={handleAdd}>
-            <i className="bi bi-plus-lg me-2" />Add Question
-          </button>
+          !isLocked && (
+            <button className="btn btn-primary" type="button" onClick={handleAdd}>
+              <i className="bi bi-plus-lg me-2" />Add Question
+            </button>
+          )
         }
       />
+
+      {/* Bulk action bar */}
+      {selectedIds.length > 0 && (
+        <div className="d-flex align-items-center gap-3 mb-3 p-3 rounded-3 bg-light border">
+          <i className="bi bi-check-square fs-5" style={{ color: 'var(--primary)' }} />
+          <span className="fw-semibold">{selectedIds.length} question{selectedIds.length !== 1 ? 's' : ''} selected</span>
+          <button
+            className="btn btn-danger btn-sm ms-auto"
+            type="button"
+            onClick={handleBulkDelete}
+            disabled={busy}
+          >
+            <i className="bi bi-trash me-2" />Delete Selected
+          </button>
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            type="button"
+            onClick={() => setSelectedIds([])}
+          >
+            Clear Selection
+          </button>
+        </div>
+      )}
 
       <div className="surface p-3">
         <div className="table-responsive">
           <table className="table align-middle">
             <thead>
               <tr>
-                <th style={{ width: '50%' }}>Question</th>
+                <th style={{ width: '40px' }}>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={handleSelectAll}
+                      disabled={questionList.length === 0}
+                      id="select-all"
+                    />
+                    <label className="form-check-label" htmlFor="select-all" />
+                  </div>
+                </th>
+                <th style={{ width: '44%' }}>Question</th>
                 <th>Marks</th>
                 <th>Correct Option</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(exam.questions || []).length === 0 ? (
-                <tr><td colSpan="5" className="text-secondary">No questions added yet.</td></tr>
+              {questionList.length === 0 ? (
+                <tr><td colSpan="6" className="text-secondary">No questions added yet.</td></tr>
               ) : (
-                (exam.questions || []).map((q, idx) => (
-                  <tr key={q._id}>
+                questionList.map((q) => (
+                  <tr key={q._id} className={selectedIds.includes(q._id) ? 'table-primary' : ''}>
+                    <td>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={selectedIds.includes(q._id)}
+                          onChange={() => handleSelectOne(q._id)}
+                          id={`check-${q._id}`}
+                        />
+                        <label className="form-check-label" htmlFor={`check-${q._id}`} />
+                      </div>
+                    </td>
                     <td>
                       <div className="fw-semibold">{q.title}</div>
                       <div className="small text-secondary">

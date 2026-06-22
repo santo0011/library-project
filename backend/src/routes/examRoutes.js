@@ -20,3 +20,4 @@ examRoutes.put('/:id', authorizePermissions('exams:write'), examController.updat
 examRoutes.delete('/:id', authorizePermissions('exams:write'), examController.remove);
 examRoutes.post('/:id/questions', authorizePermissions('exams:write'), examController.addQuestions);
 examRoutes.post('/:id/questions/bulk', authorizePermissions('exams:write'), examController.bulkImportQuestions);
+examRoutes.post('/:id/questions/bulk-delete', authorizePermissions('exams:write'), examController.bulkDeleteQuestions);
