@@ -62,13 +62,15 @@ export const StudentResultDetailPage = () => {
               { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
               { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
               { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</> },
-              { key: 'action', label: 'Action', render: (r) => (
-                <button className="btn btn-sm rounded-pill text-white px-3"
-                  style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
-                  onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
-                  <i className="bi bi-eye me-1" />View
-                </button>
-              )},
+              {
+                key: 'action', label: 'Action', render: (r) => (
+                  <button className="btn btn-sm rounded-pill text-white px-3"
+                    style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
+                    <i className="bi bi-eye me-1" />View
+                  </button>
+                )
+              },
             ]}
             rows={result.results}
             mobileSummary={['examName', 'percentage']}
@@ -125,7 +127,7 @@ export const StudentResultDetailPage = () => {
               <p className="mb-0 opacity-75">{r.exam?.subject || ''}</p>
             </div>
             <div className={`px-4 py-2 rounded-3 ${r.passed ? 'bg-success' : 'bg-danger'}`}>
-              <div className="fw-bold fs-3 text-center">
+              <div className="fw-bold fs-5 text-center">
                 {r.passed ? 'PASS' : 'FAIL'}
               </div>
             </div>

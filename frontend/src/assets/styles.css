@@ -1251,6 +1251,32 @@ body {
   .row.g-3 > [class*='col-'] { padding-left: 6px; padding-right: 6px; }
   .row.g-4 { margin-left: -6px; margin-right: -6px; }
   .row.g-4 > [class*='col-'] { padding-left: 6px; padding-right: 6px; }
+
+  /* Dashboard stat cards: 2 columns per row on mobile */
+  .stat-card {
+    padding: 10px 12px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.65rem;
+  }
+
+  .dashboard-stat-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 14px;
+  }
+
+  /* Force col-sm-6 to be 50% width even on small mobile screens */
+  .row.g-3.mb-4 > .col-sm-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
 }
 
 /* =============================================
