@@ -153,25 +153,40 @@ export const StudentResultDetailPage = () => {
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-4">
           <div className="stat-card stat-card-blue">
-            <div className="text-center">
-              <div className="stat-value" style={{ color: '#4f46e5' }}>{r.totalMarks}</div>
-              <small className="stat-label">Total Marks</small>
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#eef2ff', color: '#4f46e5' }}>
+                <i className="bi bi-calculator" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#4f46e5' }}>{r.totalMarks}</div>
+                <small className="stat-label">Total Marks</small>
+              </div>
             </div>
           </div>
         </div>
         <div className="col-6 col-md-4">
           <div className="stat-card stat-card-green">
-            <div className="text-center">
-              <div className="stat-value" style={{ color: '#059669' }}>{r.score}</div>
-              <small className="stat-label">Obtained</small>
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+                <i className="bi bi-check2-square" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#059669' }}>{r.score}</div>
+                <small className="stat-label">Obtained</small>
+              </div>
             </div>
           </div>
         </div>
         <div className="col-6 col-md-4">
           <div className="stat-card stat-card-amber">
-            <div className="text-center">
-              <div className="stat-value" style={{ color: '#d97706' }}>{r.percentage}%</div>
-              <small className="stat-label">Percentage</small>
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <i className="bi bi-percent" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#d97706' }}>{r.percentage}%</div>
+                <small className="stat-label">Percentage</small>
+              </div>
             </div>
           </div>
         </div>
@@ -277,14 +292,14 @@ export const StudentResultDetailPage = () => {
                         }
 
                         return (
-                          <div key={i} className="p-2 rounded-2 d-flex align-items-center gap-2 border"
+                          <div key={i} className="py-1 px-2 rounded-2 d-flex align-items-center gap-2 border"
                             style={{ background: bgColor, borderColor: borderColor, color: textColor }}>
                             <span className={`d-inline-flex align-items-center justify-content-center rounded-circle fw-bold small ${optIsCorrect ? 'bg-success text-white' : isSelected && !optIsCorrect ? 'bg-danger text-white' : 'bg-light'}`}
-                              style={{ width: 28, height: 28, minWidth: 28, fontSize: 11, color: "#000" }}>
+                              style={{ width: 22, height: 22, minWidth: 22, fontSize: 10 }}>
                               {String.fromCharCode(65 + i)}
                             </span>
                             <span className="small">{opt.text}</span>
-                            {icon}
+                            {icon && <span className="ms-auto">{icon}</span>}
                           </div>
                         );
                       })}

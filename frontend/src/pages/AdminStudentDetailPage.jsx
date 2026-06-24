@@ -97,8 +97,8 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
         </div>
       </div>
 
-      {/* Tabs - compact */}
-      <ul className="nav nav-tabs mb-2" style={{ fontSize: '0.8rem' }}>
+        {/* Tabs - compact */}
+      <ul className="nav nav-tabs mb-3" style={{ fontSize: '0.8rem' }}>
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === 'exam' ? 'active' : ''}`}
@@ -150,7 +150,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           </div>
 
           {/* Exam History & Results - compact */}
-          <div className="card shadow-sm border-0">
+          <div className="card shadow-sm border-0 mb-3">
             <div className="card-header border-0 pt-2 pb-0 px-3" style={{ background: 'transparent' }}>
               <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)', fontSize: '0.82rem' }}>
                 <i className="bi bi-trophy me-1 text-warning" />Exam History & Results
@@ -206,7 +206,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
       {activeTab === 'fee' && (
         <>
           {/* Fee Summary - compact gradient cards replaced with stat-card style */}
-          <div className="row g-2 mb-3">
+          <div className="row g-3 mb-3">
             {[
               { label: 'Total Fee', value: money(fee?.totalFee), borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
               { label: 'Paid Amount', value: money(fee?.paidAmount), borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
