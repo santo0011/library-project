@@ -641,21 +641,21 @@ export const TakeExamPage = () => {
                 </span>
                 <small className="text-secondary">{currentQuestion.marks || 1} mark(s)</small>
               </div>
-              <h4 className="fw-bold mb-4 lh-base">{currentQuestion.title}</h4>
+              <h5 className="fw-bold mb-3 lh-base" style={{ fontSize: 16 }}>{currentQuestion.title}</h5>
 
               <div className="d-flex flex-column gap-2">
                 {currentQuestion.options.map((opt, i) => {
                   const isSelected = answers[currentQuestion._id] === i;
                   return (
                     <button key={i} onClick={() => handleSelectOption(currentQuestion._id, i)}
-                      className={`btn text-start p-3 rounded-3 d-flex align-items-center gap-3 border ${isSelected
+                      className={`btn text-start py-2 px-3 rounded-3 d-flex align-items-center gap-3 border ${isSelected
                         ? 'text-white shadow-sm' : 'btn-light text-dark border-secondary-subtle'}`}
                       style={isSelected ? { background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none' } : { transition: 'all 0.2s ease' }}>
                       <span className={`d-inline-flex align-items-center justify-content-center rounded-circle fw-bold ${isSelected ? 'bg-white text-primary' : 'bg-light text-secondary'}`}
-                        style={{ width: 36, height: 36, fontSize: 14, minWidth: 36 }}>
+                        style={{ width: 32, height: 32, fontSize: 12, minWidth: 32 }}>
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span className="fw-medium">{opt.text}</span>
+                      <span className="fw-medium" style={{ fontSize: 14 }}>{opt.text}</span>
                       {isSelected && <i className="bi bi-check-circle-fill ms-auto fs-5" />}
                     </button>
                   );

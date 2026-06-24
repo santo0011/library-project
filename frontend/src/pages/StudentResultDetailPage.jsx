@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { api } from '../services/api.js';
 
 export const StudentResultDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Reset state on every navigation — this fires BEFORE the next render
+    // when location.pathname changes (list vs detail are different paths)
+    setLoading(true);
+    setResult(null);
+    setError('');
+
     if (!id) {
       api.get('/students/results')
         .then((res) => setResult({ results: res.data.data || [] }))
@@ -23,10 +30,13 @@ export const StudentResultDetailPage = () => {
         .catch((err) => setError(err.response?.data?.message || 'Failed to load'))
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, location.pathname]);
 
   // List view — header shows immediately, loader for content
   if (!id) {
+    // Defensive guard: if result is still a detail object (stale data from navigation),
+    // show loading instead of crashing on result.results being undefined
+    const isStaleDetail = result && !Array.isArray(result.results);
     return (
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4">
@@ -35,7 +45,7 @@ export const StudentResultDetailPage = () => {
             <p className="text-secondary mb-0">View your exam performance history.</p>
           </div>
         </div>
-        {loading ? (
+        {loading || isStaleDetail ? (
           <div className="surface p-4">
             <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
           </div>
@@ -120,11 +130,15 @@ export const StudentResultDetailPage = () => {
       </button>
 
       <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 16, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="card-body p-4">
+        <div className="card-body px-4">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
               <h4 className="fw-bold mb-1">{r.exam?.name || 'Exam Result'}</h4>
               <p className="mb-0 opacity-75">{r.exam?.subject || ''}</p>
+              <small className="opacity-60 d-block mt-1">
+                <i className="bi bi-calendar3 me-1" />
+                {r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}
+              </small>
             </div>
             <div className={`px-4 py-2 rounded-3 ${r.passed ? 'bg-success' : 'bg-danger'}`}>
               <div className="fw-bold fs-5 text-center">
@@ -135,8 +149,9 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
+      {/* Result summary stats — 6 cards in 3x2 grid on desktop, 2 per row on mobile */}
       <div className="row g-3 mb-4">
-        <div className="col-6 col-md-3">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-blue">
             <div className="text-center">
               <div className="stat-value" style={{ color: '#4f46e5' }}>{r.totalMarks}</div>
@@ -144,7 +159,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-green">
             <div className="text-center">
               <div className="stat-value" style={{ color: '#059669' }}>{r.score}</div>
@@ -152,7 +167,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-amber">
             <div className="text-center">
               <div className="stat-value" style={{ color: '#d97706' }}>{r.percentage}%</div>
@@ -160,18 +175,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="stat-card stat-card-red">
-            <div className="text-center">
-              <div className="stat-value" style={{ color: '#dc2626', fontSize: '1.1rem' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
-              <small className="stat-label">Date</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="row g-3 mb-4">
-        <div className="col-12 col-md-4">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-green">
             <div className="d-flex align-items-center gap-3">
               <div className="dashboard-stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
@@ -184,7 +188,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-12 col-md-4">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-red">
             <div className="d-flex align-items-center gap-3">
               <div className="dashboard-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}>
@@ -197,7 +201,7 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-12 col-md-4">
+        <div className="col-6 col-md-4">
           <div className="stat-card stat-card-amber">
             <div className="d-flex align-items-center gap-3">
               <div className="dashboard-stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
@@ -220,7 +224,7 @@ export const StudentResultDetailPage = () => {
               {r.percentage}%
             </span>
           </div>
-          <div className="progress" style={{ height: 14, borderRadius: 7 }}>
+          <div className="progress" style={{ height: 7, borderRadius: 7 }}>
             <div className={`progress-bar ${(r.percentage || 0) >= 70 ? 'bg-success' : (r.percentage || 0) >= 40 ? 'bg-warning' : 'bg-danger'}`}
               style={{ width: `${Math.min(r.percentage || 0, 100)}%`, borderRadius: 7, transition: 'width 1s ease' }} />
           </div>
@@ -229,27 +233,27 @@ export const StudentResultDetailPage = () => {
 
       {r.resultItems?.length > 0 && (
         <div>
-          <h5 className="fw-bold mb-3" style={{ color: 'var(--app-text)' }}>
+          <h5 className="fw-bold mb-2" style={{ color: 'var(--app-text)' }}>
             <i className="bi bi-list-check me-2 text-primary" />Answer Review
           </h5>
-          <div className="d-flex flex-column gap-3">
+          <div className="d-flex flex-column gap-2">
             {r.resultItems.map((item, idx) => {
               const isCorrect = item.isCorrect;
               return (
-                <div key={item.question?._id || idx} className="card shadow border-0" style={{ borderRadius: 12 }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center gap-2 mb-3">
-                      <span className="badge rounded-pill text-white px-3 py-1"
-                        style={{ background: isCorrect ? 'linear-gradient(135deg, #43e97b, #38f9d7)' : 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
+                <div key={item.question?._id || idx} className="card shadow-sm border-0" style={{ borderRadius: 10 }}>
+                  <div className="card-body p-3">
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <span className="badge rounded-pill text-white px-2 py-1"
+                        style={{ background: isCorrect ? 'linear-gradient(135deg, #43e97b, #38f9d7)' : 'linear-gradient(135deg, #f093fb, #f5576c)', fontSize: 11 }}>
                         Q{idx + 1}
                       </span>
-                      <span className={`badge rounded-pill ${isCorrect ? 'bg-success' : 'bg-danger'}`}>
+                      <span className={`badge rounded-pill ${isCorrect ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: 11 }}>
                         {isCorrect ? 'Correct' : 'Incorrect'}
                       </span>
-                      <span className="small" style={{ color: 'var(--app-muted)' }}>{item.awardedMarks}/{item.marks} marks</span>
+                      <span className="small" style={{ color: 'var(--app-muted)' }}>{item.awardedMarks}/{item.marks}</span>
                     </div>
 
-                    <p className="fw-medium mb-3" style={{ color: 'var(--app-text)' }}>{item.title}</p>
+                    <p className="fw-medium mb-2" style={{ color: 'var(--app-text)', fontSize: 14 }}>{item.title}</p>
 
                     <div className="d-flex flex-column gap-1">
                       {(item.options || []).map((opt, i) => {

@@ -1055,10 +1055,12 @@ body {
 }
 
 /* =============================================
-   MOBILE MENU TOGGLE
+   MOBILE MENU TOGGLE - Desktop only hide
    ============================================= */
-.mobile-menu {
-  display: none;
+@media (min-width: 992px) {
+  .mobile-menu {
+    display: none;
+  }
 }
 
 /* =============================================
