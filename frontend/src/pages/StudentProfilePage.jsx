@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { api } from '../services/api.js';
 
@@ -173,43 +174,19 @@ export const StudentProfilePage = () => {
                   <small>No results yet. Complete an exam to see your results.</small>
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0 small">
-                    <thead style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-                      <tr>
-                        <th className="text-white">Exam</th>
-                        <th className="text-white">Marks</th>
-                        <th className="text-white">Percentage</th>
-                        <th className="text-white">Result</th>
-                        <th className="text-white">Date</th>
-                        <th className="text-white"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.slice(0, 10).map((r) => (
-                        <tr key={r._id} className="cursor-pointer" onClick={() => navigate(`/student/results/${r._id}`)}>
-                          <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
-                          <td style={{ color: 'var(--app-text)' }}>{r.score}/{r.totalMarks}</td>
-                          <td>
-                            <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span>
-                          </td>
-                          <td>
-                            <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>
-                              {r.passed ? 'Pass' : 'Fail'}
-                            </span>
-                          </td>
-                          <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</td>
-                          <td>
-                            <button className="btn btn-sm btn-outline-primary rounded-pill px-2 py-0"
-                              onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
-                              <i className="bi bi-eye" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ResponsiveTable
+                  columns={[
+                    { key: 'exam', label: 'Exam', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
+                    { key: 'marks', label: 'Marks', render: (r) => <>{r.score}/{r.totalMarks}</> },
+                    { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
+                    { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
+                    { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '-'}</> },
+                  ]}
+                  rows={results.slice(0, 10)}
+                  mobileSummary={['exam', 'marks']}
+                  onRowClick={(r) => navigate(`/student/results/${r._id}`)}
+                  emptyMessage="No results yet. Complete an exam to see your results."
+                />
               )}
             </div>
           </div>

@@ -73,24 +73,22 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
   };
 
   return (
-    <div>
-      {/* Student Profile Card */}
-      <div className="card shadow-sm border-0 mb-4">
-        <div className="card-body p-4">
-          <div className="d-flex align-items-center gap-4 flex-wrap">
+    <div className="compact-drawer">
+      {/* Student Profile Card - compact */}
+      <div className="card shadow-sm border-0 mb-3">
+        <div className="card-body p-3">
+          <div className="d-flex align-items-center gap-3 flex-wrap">
             <div className="flex-grow-1">
               <div className="d-flex align-items-center gap-2 flex-wrap">
-                <h4 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>{student.name}</h4>
-                <span className={`badge ${student.status === 'active' ? 'bg-success' : 'bg-danger'}`}>
-                  {student.status}
-                </span>
-                <span className="badge bg-secondary">{student.studentId || 'N/A'}</span>
+                <h5 className="fw-bold mb-0" style={{ color: 'var(--app-text)', fontSize: '1rem' }}>{student.name}</h5>
+                <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{student.status === 'active' ? 'bg-success' : 'bg-danger'}</span>
+                <span className="badge bg-secondary" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{student.studentId || 'N/A'}</span>
               </div>
-              <div className="d-flex gap-3 mt-1 flex-wrap" style={{ color: 'var(--app-muted)' }}>
-                <span><i className="bi bi-envelope me-1" />{student.email}</span>
-                <span><i className="bi bi-telephone me-1" />{student.mobile || 'N/A'}</span>
-                <span><i className="bi bi-gender-ambiguous me-1" />{student.gender || 'N/A'}</span>
-                <span><i className="bi bi-calendar me-1" />
+              <div className="d-flex gap-3 mt-1 flex-wrap" style={{ color: 'var(--app-muted)', fontSize: '0.75rem' }}>
+                <span><i className="bi bi-envelope me-1" style={{ fontSize: '0.7rem' }} />{student.email}</span>
+                <span><i className="bi bi-telephone me-1" style={{ fontSize: '0.7rem' }} />{student.mobile || 'N/A'}</span>
+                <span><i className="bi bi-gender-ambiguous me-1" style={{ fontSize: '0.7rem' }} />{student.gender || 'N/A'}</span>
+                <span><i className="bi bi-calendar me-1" style={{ fontSize: '0.7rem' }} />
                   Joined: {student.createdAt ? moment(student.createdAt).format('DD, MMM, YYYY') : 'N/A'}
                 </span>
               </div>
@@ -99,13 +97,14 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <ul className="nav nav-tabs mb-3">
+      {/* Tabs - compact */}
+      <ul className="nav nav-tabs mb-2" style={{ fontSize: '0.8rem' }}>
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === 'exam' ? 'active' : ''}`}
             type="button"
             onClick={() => setActiveTab('exam')}
+            style={{ padding: '6px 12px' }}
           >
             <i className="bi bi-trophy me-1 text-warning" />Exam Details
           </button>
@@ -115,6 +114,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
             className={`nav-link ${activeTab === 'fee' ? 'active' : ''}`}
             type="button"
             onClick={() => setActiveTab('fee')}
+            style={{ padding: '6px 12px' }}
           >
             <i className="bi bi-cash-coin me-1 text-success" />Fee Details
           </button>
@@ -123,25 +123,25 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
 
       {activeTab === 'exam' && (
         <>
-          {/* Stats Cards */}
-          <div className="row g-3 mb-4">
+          {/* Stats Cards - compact */}
+          <div className="row g-2 mb-3">
             {[
-              { label: 'Total Exams', value: stats.totalExams, icon: 'bi-journal-text', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
-              { label: 'Passed', value: stats.passed, icon: 'bi-check-circle', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
-              { label: 'Failed', value: stats.failed, icon: 'bi-x-circle', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)', color: '#c62828' },
-              { label: 'Avg Score', value: `${stats.avgPercentage}%`, icon: 'bi-award', bg: 'linear-gradient(135deg, #e0f7fa, #b2ebf2)', color: '#00838f' },
-              { label: 'Best Score', value: `${stats.bestScore}%`, icon: 'bi-trophy', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', color: '#e65100' },
-              { label: 'Total Marks', value: stats.totalScore, icon: 'bi-calculator', bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)', color: '#7b1fa2' }
+              { label: 'Total Exams', value: stats.totalExams, icon: 'bi-journal-text', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
+              { label: 'Passed', value: stats.passed, icon: 'bi-check-circle', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
+              { label: 'Failed', value: stats.failed, icon: 'bi-x-circle', borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
+              { label: 'Avg Score', value: `${stats.avgPercentage}%`, icon: 'bi-award', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2' },
+              { label: 'Best Score', value: `${stats.bestScore}%`, icon: 'bi-trophy', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' },
+              { label: 'Total Marks', value: stats.totalScore, icon: 'bi-calculator', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed' }
             ].map((s) => (
               <div className="col-sm-6 col-xl-4" key={s.label}>
-                <div className="card shadow-sm border-0 h-100" style={{ borderRadius: 12, background: s.bg }}>
-                  <div className="card-body d-flex align-items-center gap-3 p-3">
-                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm" style={{ width: 56, height: 56, minWidth: 56 }}>
-                      <i className={`bi ${s.icon}`} style={{ color: s.color, fontSize: 24 }} />
+                <div className={`stat-card ${s.borderClass}`} style={{ padding: '12px 14px' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="dashboard-stat-icon" style={{ width: 36, height: 36, minWidth: 36, fontSize: 15, borderRadius: 9, background: s.iconBg, color: s.iconColor }}>
+                      <i className={`bi ${s.icon}`} />
                     </div>
-                    <div>
-                      <div className="fs-3 fw-bold" style={{ color: s.color }}>{s.value}</div>
-                      <small className="fw-medium" style={{ color: s.color }}>{s.label}</small>
+                    <div className="min-w-0">
+                      <div className="stat-value" style={{ fontSize: '1.15rem', color: s.iconColor }}>{s.value}</div>
+                      <small className="stat-label" style={{ fontSize: '0.7rem' }}>{s.label}</small>
                     </div>
                   </div>
                 </div>
@@ -149,52 +149,48 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
             ))}
           </div>
 
-          {/* Exam History & Results */}
+          {/* Exam History & Results - compact */}
           <div className="card shadow-sm border-0">
-            <div className="card-header border-0 pt-3 pb-0" style={{ background: 'transparent' }}>
-              <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>
-                <i className="bi bi-trophy me-2 text-warning" />Exam History & Results
+            <div className="card-header border-0 pt-2 pb-0 px-3" style={{ background: 'transparent' }}>
+              <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)', fontSize: '0.82rem' }}>
+                <i className="bi bi-trophy me-1 text-warning" />Exam History & Results
               </h6>
             </div>
-            <div className="card-body p-3">
+            <div className="card-body px-3 py-2">
               {results.length === 0 ? (
-                <div className="text-center py-4" style={{ color: 'var(--app-muted)' }}>
-                  <i className="bi bi-journal-x fs-2 d-block mb-2" />
-                  <small>No exam results yet.</small>
+                <div className="text-center py-3" style={{ color: 'var(--app-muted)' }}>
+                  <i className="bi bi-journal-x fs-4 d-block mb-1" />
+                  <small style={{ fontSize: '0.75rem' }}>No exam results yet.</small>
                 </div>
               ) : (
-                <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
-                  <table className="table table-hover align-middle">
-                    <thead className="">
+                <div className="table-responsive" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                  <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
+                    <thead>
                       <tr>
-                        <th style={{ color: 'var(--app-text)' }}>Exam</th>
-                        <th style={{ color: 'var(--app-text)' }}>Subject</th>
-                        <th style={{ color: 'var(--app-text)' }}>Total Marks</th>
-                        <th style={{ color: 'var(--app-text)' }}>Obtained</th>
-                        <th style={{ color: 'var(--app-text)' }}>Percentage</th>
-                        <th style={{ color: 'var(--app-text)' }}>Result</th>
-                        <th style={{ color: 'var(--app-text)' }}>Date</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Exam</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Subject</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Total</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Obtained</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>%</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Result</th>
+                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Date</th>
                       </tr>
                     </thead>
                     <tbody>
                       {results.map((r) => (
                         <tr key={r._id}>
-                          <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
-                          <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r?.exam?.subject}</td>
-                          <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
-                          <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.score}</td>
-                          <td>
-                            <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}`}>
-                              {r.percentage || 0}%
-                            </span>
+                          <td className="fw-semibold" style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.exam?.name || 'N/A'}</td>
+                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r?.exam?.subject}</td>
+                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.totalMarks}</td>
+                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.score}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>
+                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}</span>
                           </td>
-                          <td>
-                            <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'}`}>
-                              {r.passed ? 'Pass' : 'Fail'}
-                            </span>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>
+                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{r.passed ? 'bg-success' : 'bg-danger'}</span>
                           </td>
-                          <td style={{ color: 'var(--app-text)' }}>
-                            {r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}
+                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>
+                            {r.submittedAt ? moment(r.submittedAt).format('DD/MM/YY') : '-'}
                           </td>
                         </tr>
                       ))}
@@ -209,127 +205,105 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
 
       {activeTab === 'fee' && (
         <>
-          <div className="card shadow-sm border-0 mb-4">
-            <div className="card-header border-0 pt-3 pb-0" style={{ background: 'transparent' }}>
-              <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)' }}>
-                <i className="bi bi-cash-coin me-2 text-success" />Fees
-              </h6>
-            </div>
-            <div className="card-body p-3">
-              <div className="row g-3 mb-3">
-                {[
-                  { label: 'Total Fee', value: money(fee?.totalFee), color: '#1565c0', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' },
-                  { label: 'Paid Amount', value: money(fee?.paidAmount), color: '#2e7d32', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' },
-                  { label: 'Due Amount', value: money(fee?.dueAmount), color: '#c62828', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },
-                  { label: 'Payment Status', value: fee?.paymentStatus || 'Unpaid', color: '#e65100', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }
-                ].map((item) => (
-                  <div className="col-sm-6 col-xl-3" key={item.label}>
-                    <div className="p-3 rounded-3 h-100" style={{ background: item.bg }}>
-                      <small className="fw-semibold" style={{ color: item.color }}>{item.label}</small>
-                      <div className="fs-5 fw-bold" style={{ color: item.color }}>{item.value}</div>
+          {/* Fee Summary - compact gradient cards replaced with stat-card style */}
+          <div className="row g-2 mb-3">
+            {[
+              { label: 'Total Fee', value: money(fee?.totalFee), borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
+              { label: 'Paid Amount', value: money(fee?.paidAmount), borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
+              { label: 'Due Amount', value: money(fee?.dueAmount), borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
+              { label: 'Status', value: fee?.paymentStatus || 'Unpaid', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' }
+            ].map((item) => (
+              <div className="col-sm-6 col-xl-3" key={item.label}>
+                <div className={`stat-card ${item.borderClass}`} style={{ padding: '12px 14px' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="dashboard-stat-icon" style={{ width: 36, height: 36, minWidth: 36, fontSize: 15, borderRadius: 9, background: item.iconBg, color: item.iconColor }}>
+                      <i className={`bi ${item.label === 'Total Fee' ? 'bi-wallet2' : item.label === 'Paid Amount' ? 'bi-check-circle' : item.label === 'Due Amount' ? 'bi-exclamation-circle' : 'bi-receipt'}`} />
+                    </div>
+                    <div>
+                      <div className="stat-value" style={{ fontSize: '1rem', color: item.iconColor }}>{item.value}</div>
+                      <small className="stat-label" style={{ fontSize: '0.68rem' }}>{item.label}</small>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          <div className="card shadow-sm border-0 mb-4">
-            <div className="card-body p-3">
-              <div className="row g-3 mb-3">
-
-                <h6 className="fw-bold mb-2">Fee History</h6>
-                <div className="table-responsive mb-3" style={{ maxHeight: 310, overflowY: 'auto' }}>
-                  <table className="table table-hover align-middle">
-                    <thead>
-                      <tr>
-                        <th>Fee Type</th>
-                        <th>Total Fee</th>
-                        <th>Paid Amount</th>
-                        <th>Due Amount</th>
-                        <th>Assigned</th>
-                        <th>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {assignedFees.length === 0 ? (
-                        <tr><td colSpan="6" className="text-center text-secondary">No fee assigned yet.</td></tr>
-                      ) : assignedFees.map((item) => (
-                        <tr key={item._id}>
-                          <td className="fw-semibold">{item.name}</td>
-                          <td>{money(item.amount)}</td>
-                          <td className="text-success fw-semibold">{money(item.paidAmount)}</td>
-                          <td className="text-danger fw-semibold">{money(item.dueAmount)}</td>
-                          <td>{item.assignedAt ? moment(item.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
-                          <td>{item.description || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-
-          <div className="card shadow-sm border-0 mb-4">
-            <div className="card-body p-3">
-              <div className="row g-3 mb-3">
-
-
-                <h6 className="fw-bold mb-2">Payment History</h6>
-                <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
-                  <table className="table table-hover align-middle">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Mode</th>
-                        <th>Fee Type</th>
-                        <th>Transaction</th>
-                        <th>Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments.length === 0 ? (
-                        <tr>
-                          <td colSpan="6" className="text-center text-secondary">
-                            No payments recorded.
-                          </td>
-                        </tr>
-                      ) : (
-                        [...payments].reverse().map((payment) => (
-                          <tr key={payment._id}>
-                            <td>
-                              {payment.paymentDate
-                                ? moment(payment.paymentDate).format("DD, MMM, YYYY")
-                                : "-"}
-                            </td>
-                            <td className="fw-semibold text-success">
-                              {money(payment.amount)}
-                            </td>
-                            <td>{payment.paymentMode || "-"}</td>
-                            <td>{payment.feeName || "-"}</td>
-                            <td>{payment.transactionId || "-"}</td>
-                            <td>{payment.remarks || "-"}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Fee History - compact table */}
+          <div className="card shadow-sm border-0 mb-3">
+            <div className="card-body px-3 py-2">
+              <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Fee History</h6>
+              <div className="table-responsive mb-2" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Fee Type</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Total</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Paid</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Due</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Assigned</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignedFees.length === 0 ? (
+                      <tr><td colSpan="6" className="text-center text-secondary" style={{ padding: '8px', fontSize: '0.75rem' }}>No fee assigned yet.</td></tr>
+                    ) : assignedFees.map((item) => (
+                      <tr key={item._id}>
+                        <td className="fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.name}</td>
+                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.amount)}</td>
+                        <td className="text-success fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.paidAmount)}</td>
+                        <td className="text-danger fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.dueAmount)}</td>
+                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.assignedAt ? moment(item.assignedAt).format('DD/MM/YY') : '-'}</td>
+                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.description || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
+          {/* Payment History - compact table */}
+          <div className="card shadow-sm border-0 mb-3">
+            <div className="card-body px-3 py-2">
+              <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Payment History</h6>
+              <div className="table-responsive" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Date</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Amount</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Mode</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Fee Type</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Transaction</th>
+                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center text-secondary" style={{ padding: '8px', fontSize: '0.75rem' }}>No payments recorded.</td>
+                      </tr>
+                    ) : (
+                      [...payments].reverse().map((payment) => (
+                        <tr key={payment._id}>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.paymentDate ? moment(payment.paymentDate).format('DD/MM/YY') : '-'}</td>
+                          <td className="fw-semibold text-success" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(payment.amount)}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.paymentMode || '-'}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.feeName || '-'}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.transactionId || '-'}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.remarks || '-'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </>
-
-
       )}
-
-
     </div>
   );
 };

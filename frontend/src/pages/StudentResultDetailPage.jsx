@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { api } from '../services/api.js';
 
 export const StudentResultDetailPage = () => {
@@ -53,48 +54,27 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-hover align-middle rounded-3 shadow overflow-hidden">
-              <thead className="text-white" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-                <tr>
-                  <th className="text-white">Exam Name</th>
-                  <th className="text-white">Total Marks</th>
-                  <th className="text-white">Obtained</th>
-                  <th className="text-white">Percentage</th>
-                  <th className="text-white">Result</th>
-                  <th className="text-white">Date</th>
-                  <th className="text-white text-end">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.results.map((r) => (
-                  <tr key={r._id} className="cursor-pointer" onClick={() => navigate(`/student/results/${r._id}`)}>
-                    <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
-                    <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.score}</td>
-                    <td>
-                      <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>
-                        {r.percentage || 0}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>
-                        {r.passed ? 'Pass' : 'Fail'}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</td>
-                    <td className="text-end">
-                      <button className="btn btn-sm rounded-pill text-white px-3"
-                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
-                        onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
-                        <i className="bi bi-eye me-1" />View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            columns={[
+              { key: 'examName', label: 'Exam Name', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
+              { key: 'totalMarks', label: 'Total Marks', render: (r) => <>{r.totalMarks}</> },
+              { key: 'score', label: 'Obtained', render: (r) => <span className="fw-semibold">{r.score}</span> },
+              { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
+              { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
+              { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</> },
+              { key: 'action', label: 'Action', render: (r) => (
+                <button className="btn btn-sm rounded-pill text-white px-3"
+                  style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
+                  <i className="bi bi-eye me-1" />View
+                </button>
+              )},
+            ]}
+            rows={result.results}
+            mobileSummary={['examName', 'percentage']}
+            onRowClick={(r) => navigate(`/student/results/${r._id}`)}
+            emptyMessage="No results yet. Complete an exam to see your results."
+          />
         )}
       </div>
     );
@@ -155,34 +135,34 @@ export const StudentResultDetailPage = () => {
 
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-primary fw-medium">Total Marks</small>
-              <div className="fs-2 fw-bold" style={{ color: '#1565c0' }}>{r.totalMarks}</div>
+          <div className="stat-card stat-card-blue">
+            <div className="text-center">
+              <div className="stat-value" style={{ color: '#4f46e5' }}>{r.totalMarks}</div>
+              <small className="stat-label">Total Marks</small>
             </div>
           </div>
         </div>
         <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-success fw-medium">Obtained</small>
-              <div className="fs-2 fw-bold" style={{ color: '#2e7d32' }}>{r.score}</div>
+          <div className="stat-card stat-card-green">
+            <div className="text-center">
+              <div className="stat-value" style={{ color: '#059669' }}>{r.score}</div>
+              <small className="stat-label">Obtained</small>
             </div>
           </div>
         </div>
         <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-warning fw-medium" style={{ color: '#e65100' }}>Percentage</small>
-              <div className="fs-2 fw-bold" style={{ color: '#e65100' }}>{r.percentage}%</div>
+          <div className="stat-card stat-card-amber">
+            <div className="text-center">
+              <div className="stat-value" style={{ color: '#d97706' }}>{r.percentage}%</div>
+              <small className="stat-label">Percentage</small>
             </div>
           </div>
         </div>
         <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-danger fw-medium">Date</small>
-              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
+          <div className="stat-card stat-card-red">
+            <div className="text-center">
+              <div className="stat-value" style={{ color: '#dc2626', fontSize: '1.1rem' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
+              <small className="stat-label">Date</small>
             </div>
           </div>
         </div>
@@ -190,40 +170,40 @@ export const StudentResultDetailPage = () => {
 
       <div className="row g-3 mb-4">
         <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
-                <i className="bi bi-check-lg fs-5" />
+          <div className="stat-card stat-card-green">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+                <i className="bi bi-check-lg" />
               </div>
               <div>
-                <div className="fs-4 fw-bold text-success">{correctCount}</div>
-                <small className="text-success fw-medium">Correct</small>
+                <div className="stat-value" style={{ color: '#059669' }}>{correctCount}</div>
+                <small className="stat-label">Correct</small>
               </div>
             </div>
           </div>
         </div>
         <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
-                <i className="bi bi-x-lg fs-5" />
+          <div className="stat-card stat-card-red">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}>
+                <i className="bi bi-x-lg" />
               </div>
               <div>
-                <div className="fs-4 fw-bold text-danger">{wrongCount}</div>
-                <small className="text-danger fw-medium">Wrong</small>
+                <div className="stat-value" style={{ color: '#dc2626' }}>{wrongCount}</div>
+                <small className="stat-label">Wrong</small>
               </div>
             </div>
           </div>
         </div>
         <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle text-white" style={{ width: 48, height: 48, minWidth: 48, background: '#e65100' }}>
-                <i className="bi bi-question-lg fs-5" />
+          <div className="stat-card stat-card-amber">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <i className="bi bi-question-lg" />
               </div>
               <div>
-                <div className="fs-4 fw-bold" style={{ color: '#e65100' }}>{unansweredCount}</div>
-                <small className="fw-medium" style={{ color: '#e65100' }}>Unanswered</small>
+                <div className="stat-value" style={{ color: '#d97706' }}>{unansweredCount}</div>
+                <small className="stat-label">Unanswered</small>
               </div>
             </div>
           </div>

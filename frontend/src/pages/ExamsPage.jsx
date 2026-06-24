@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { ExamForm } from '../components/exams/ExamForm.jsx';
@@ -100,82 +101,46 @@ export const ExamsPage = () => {
         </div>
       </div>
       <div className="surface p-3">
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Subject</th>
-                <th>Total Marks</th>
-                <th>Duration</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Status</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="8" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
-              ) : (
-                (exams.items || []).map((exam) => (
-                  <tr key={exam._id}>
-                    <td>
-                      <div className="fw-semibold">{exam.name}</div>
-                    </td>
-                    <td>{exam.subject}</td>
-                    <td>
-                      {exam.totalMarks} (Pass: {exam.passMarks})
-                    </td>
-                    <td>{exam.durationMinutes} min</td>
-                    <td>{formatDate(exam.startDate)}</td>
-                    <td>{formatDate(exam.endDate)}</td>
-                    <td>
-                      <StatusBadge status={exam.status} />
-                    </td>
-                    <td className="text-end">
-                      {canRead && (
-                        <button
-                          className="btn btn-sm btn-outline-info me-1"
-                          type="button"
-                          onClick={() => navigate(`/exams/${exam._id}/questions`)}
-                          title="Questions"
-                        >
-                          <i className="bi bi-question-circle" />
-                        </button>
-                      )}
-
-                      {canWrite && (
-                        <button
-                          className="btn btn-sm btn-outline-primary me-1"
-                          type="button"
-                          onClick={() => setEditing(exam)}
-                          title="Edit"
-                        >
-                          <i className="bi bi-pencil" />
-                        </button>
-                      )}
-
-                      {canWrite && (
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          type="button"
-                          onClick={() => remove(exam)}
-                          disabled={busy}
-                          title="Delete"
-                        >
-                          <i className="bi bi-trash" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-
-          </table>
-        </div>
+        {loading ? (
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        ) : (
+          <ResponsiveTable
+            columns={[
+              { key: 'name', label: 'Name', render: (exam) => <div className="fw-semibold">{exam.name}</div> },
+              { key: 'subject', label: 'Subject', render: (exam) => <>{exam.subject}</> },
+              { key: 'marks', label: 'Total Marks', render: (exam) => <>{exam.totalMarks} (Pass: {exam.passMarks})</> },
+              { key: 'duration', label: 'Duration', render: (exam) => <>{exam.durationMinutes} min</> },
+              { key: 'startDate', label: 'Start Date', render: (exam) => <>{formatDate(exam.startDate)}</> },
+              { key: 'endDate', label: 'End Date', render: (exam) => <>{formatDate(exam.endDate)}</> },
+              { key: 'status', label: 'Status', render: (exam) => <StatusBadge status={exam.status} /> },
+              { key: 'actions', label: 'Actions', render: (exam) => (
+                <div className="text-end">
+                  {canRead && (
+                    <button className="btn btn-sm btn-outline-info me-1" type="button"
+                      onClick={() => navigate(`/exams/${exam._id}/questions`)} title="Questions">
+                      <i className="bi bi-question-circle" />
+                    </button>
+                  )}
+                  {canWrite && (
+                    <button className="btn btn-sm btn-outline-primary me-1" type="button"
+                      onClick={() => setEditing(exam)} title="Edit">
+                      <i className="bi bi-pencil" />
+                    </button>
+                  )}
+                  {canWrite && (
+                    <button className="btn btn-sm btn-outline-danger" type="button"
+                      onClick={() => remove(exam)} disabled={busy} title="Delete">
+                      <i className="bi bi-trash" />
+                    </button>
+                  )}
+                </div>
+              )},
+            ]}
+            rows={exams.items || []}
+            mobileSummary={['name', 'status']}
+            emptyMessage="No exams found."
+          />
+        )}
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <span className="small text-secondary">Showing {(exams.items.length > 0 ? ((exams.page - 1) * 10 + 1) : 0)}–{Math.min(exams.page * 10, exams.total)} of {exams.total}</span>
           {exams.pages > 1 && (
