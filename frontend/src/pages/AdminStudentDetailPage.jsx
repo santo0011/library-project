@@ -97,7 +97,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
         </div>
       </div>
 
-        {/* Tabs - compact */}
+      {/* Tabs - compact */}
       <ul className="nav nav-tabs mb-3" style={{ fontSize: '0.8rem' }}>
         <li className="nav-item">
           <button
@@ -124,7 +124,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
       {activeTab === 'exam' && (
         <>
           {/* Stats Cards - compact */}
-          <div className="row g-2 mb-3">
+          <div className="row g-3 mb-4">
             {[
               { label: 'Total Exams', value: stats.totalExams, icon: 'bi-journal-text', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
               { label: 'Passed', value: stats.passed, icon: 'bi-check-circle', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
@@ -149,14 +149,15 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
             ))}
           </div>
 
+
           {/* Exam History & Results - compact */}
-          <div className="card shadow-sm border-0 mb-3">
+          <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-header border-0 pt-2 pb-0 px-3" style={{ background: 'transparent' }}>
               <h6 className="fw-bold mb-0" style={{ color: 'var(--app-text)', fontSize: '0.82rem' }}>
                 <i className="bi bi-trophy me-1 text-warning" />Exam History & Results
               </h6>
             </div>
-            <div className="card-body px-3 py-2">
+            <div className="card-body px-3 py-3">
               {results.length === 0 ? (
                 <div className="text-center py-3" style={{ color: 'var(--app-muted)' }}>
                   <i className="bi bi-journal-x fs-4 d-block mb-1" />
@@ -230,10 +231,10 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           </div>
 
           {/* Fee History - compact table */}
-          <div className="card shadow-sm border-0 mb-3">
+          <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-body px-3 py-2">
               <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Fee History</h6>
-              <div className="table-responsive mb-2" style={{ maxHeight: 280, overflowY: 'auto' }}>
+              <div className="table-responsive mb-2 py-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
                 <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
                   <thead>
                     <tr>
@@ -265,10 +266,10 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           </div>
 
           {/* Payment History - compact table */}
-          <div className="card shadow-sm border-0 mb-3">
+          <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-body px-3 py-2">
               <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Payment History</h6>
-              <div className="table-responsive" style={{ maxHeight: 280, overflowY: 'auto' }}>
+              <div className="table-responsive py-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
                 <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
                   <thead>
                     <tr>
