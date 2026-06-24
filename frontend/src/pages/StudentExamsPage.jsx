@@ -56,14 +56,7 @@ export const StudentExamsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center py-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary mb-3" role="status" style={{ width: 48, height: 48 }} />
-          <p className="text-secondary">Loading exams...</p>
-        </div>
-      </div>
-    );
+    return <div className="d-flex justify-content-center py-5"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   }
 
   return (

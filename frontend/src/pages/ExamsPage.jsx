@@ -117,9 +117,7 @@ export const ExamsPage = () => {
 
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="8">Loading exams...</td>
-                </tr>
+                <tr><td colSpan="8" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
               ) : (
                 (exams.items || []).map((exam) => (
                   <tr key={exam._id}>

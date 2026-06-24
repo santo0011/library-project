@@ -297,7 +297,7 @@ export const AdminFeeTypesPage = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="7">Loading fee types...</td></tr>
+                <tr><td colSpan="7" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
               ) : feeTypes.items.length === 0 ? (
                 <tr><td colSpan="7" className="text-center text-secondary">No fee types found.</td></tr>
               ) : feeTypes.items.map((type) => (

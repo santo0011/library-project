@@ -33,14 +33,7 @@ export const StudentDashboardPage = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center py-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary mb-3" role="status" style={{ width: 48, height: 48 }} />
-          <p className="text-secondary">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <div className="d-flex justify-content-center py-5"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   }
 
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -71,7 +64,8 @@ export const StudentDashboardPage = () => {
       {/* <PageHeader title="Student Dashboard" subtitle="Your exam performance overview." /> */}
 
       {/* Welcome Card */}
-      <div
+
+      {/* <div
         className="card shadow border-0 mb-4 text-white"
         style={{
           borderRadius: 12,
@@ -93,7 +87,7 @@ export const StudentDashboardPage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Fee Summary Cards */}
       {fee && <FeeSummaryCards fee={fee} />}

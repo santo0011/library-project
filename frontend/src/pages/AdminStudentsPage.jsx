@@ -181,7 +181,7 @@ export const AdminStudentsPage = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="8">Loading...</td></tr>
+                <tr><td colSpan="8" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
               ) : students.items.length === 0 ? (
                 <tr><td colSpan="8" className="text-secondary text-center">No students found.</td></tr>
               ) : students.items.map((s) => (

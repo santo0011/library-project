@@ -49,7 +49,7 @@ export const StudentFeesPage = () => {
     });
   }, [fee]);
 
-  if (loading) return <div className="surface p-4">Loading fee details...</div>;
+  if (loading) return <div className="surface p-4"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (

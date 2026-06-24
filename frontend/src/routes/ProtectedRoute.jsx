@@ -16,7 +16,7 @@ export const ProtectedRoute = () => {
   }, [accessToken, dispatch, sessionChecked, status]);
 
   if (!sessionChecked || status === 'loading') {
-    return <div className="min-vh-100 d-flex align-items-center justify-content-center">Loading...</div>;
+    return <div className="min-vh-100 d-flex align-items-center justify-content-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   }
 
   if (!accessToken) return <Navigate to="/login" replace state={{ from: location }} />;

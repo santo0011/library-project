@@ -326,11 +326,7 @@ export const TakeExamPage = () => {
   if (loading) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="text-center text-white">
-          <div className="spinner-border mb-3" role="status" style={{ width: 56, height: 56, color: '#fff' }} />
-          <h5 className="fw-bold">Preparing your exam...</h5>
-          <p className="opacity-75">Loading questions and timer</p>
-        </div>
+        <div className="loading-spinner" style={{ color: '#fff' }}><i className="fa-solid fa-spinner fa-spin"></i></div>
       </div>
     );
   }

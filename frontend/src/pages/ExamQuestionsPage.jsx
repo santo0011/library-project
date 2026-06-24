@@ -210,7 +210,7 @@ export const ExamQuestionsPage = () => {
     }
   };
 
-  if (loading) return <div className="surface p-4">Loading...</div>;
+  if (loading) return <div className="surface p-4"><div className="loading-spinner text-center"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   if (!exam) return <div className="alert alert-danger">Exam not found</div>;
 
   const questionList = exam.questions || [];
@@ -324,7 +324,7 @@ export const ExamQuestionsPage = () => {
         show={adding}
         title={editing?._id ? 'Edit Question' : 'Add Questions'}
         onClose={() => { setAdding(false); setEditing(null); }}
-        width="660px"
+        width="600px"
       >
         <QuestionFormModal
           question={editing}

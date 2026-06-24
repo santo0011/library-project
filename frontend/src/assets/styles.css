@@ -1170,6 +1170,27 @@ body {
 }
 
 /* =============================================
+   LOADING SPINNER
+   ============================================= */
+.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--primary);
+  font-size: 1.5rem;
+}
+
+.loading-spinner i {
+  animation: customSpin 1s linear infinite;
+}
+
+@keyframes customSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================
    EXAM TIMER ANIMATIONS
    ============================================= */
 .timer-pulse {
