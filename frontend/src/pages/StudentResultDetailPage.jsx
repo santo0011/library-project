@@ -24,24 +24,8 @@ export const StudentResultDetailPage = () => {
     }
   }, [id]);
 
-  if (loading) {
-    return <div className="d-flex justify-content-center py-5"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <div className="alert alert-danger d-flex align-items-center gap-2">
-          <i className="bi bi-exclamation-triangle flex-shrink-0" />
-          <span>{error}</span>
-        </div>
-      </div>
-    );
-  }
-
-  // List view
-  if (!id && result?.results) {
-    const results = result.results;
+  // List view — header shows immediately, loader for content
+  if (!id) {
     return (
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4">
@@ -50,7 +34,16 @@ export const StudentResultDetailPage = () => {
             <p className="text-secondary mb-0">View your exam performance history.</p>
           </div>
         </div>
-        {results.length === 0 ? (
+        {loading ? (
+          <div className="surface p-4">
+            <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+          </div>
+        ) : error ? (
+          <div className="alert alert-danger d-flex align-items-center gap-2">
+            <i className="bi bi-exclamation-triangle flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        ) : result?.results?.length === 0 ? (
           <div className="card shadow border-0" style={{ borderRadius: 16 }}>
             <div className="card-body text-center py-5">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style={{ width: 72, height: 72 }}>
@@ -74,7 +67,7 @@ export const StudentResultDetailPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {results.map((r) => (
+                {result.results.map((r) => (
                   <tr key={r._id} className="cursor-pointer" onClick={() => navigate(`/student/results/${r._id}`)}>
                     <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
                     <td style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
@@ -107,7 +100,31 @@ export const StudentResultDetailPage = () => {
     );
   }
 
-  // Single result detail
+  // Detail view (single result) — loading state
+  if (loading) {
+    return (
+      <div>
+        <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
+          <i className="bi bi-arrow-left me-1" /> Back to Results
+        </button>
+        <div className="surface p-4">
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !result) {
+    return (
+      <div className="p-4">
+        <div className="alert alert-danger d-flex align-items-center gap-2">
+          <i className="bi bi-exclamation-triangle flex-shrink-0" />
+          <span>{error || 'Result not found'}</span>
+        </div>
+      </div>
+    );
+  }
+
   const r = result;
   const totalQuestions = r.resultItems?.length || 0;
   const correctCount = r.resultItems?.filter((item) => item.isCorrect).length || 0;
@@ -120,7 +137,6 @@ export const StudentResultDetailPage = () => {
         <i className="bi bi-arrow-left me-1" /> Back to Results
       </button>
 
-      {/* Header Card with gradient */}
       <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 16, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -137,7 +153,6 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Score Stats Cards */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3">
           <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
@@ -173,7 +188,6 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Question Stats */}
       <div className="row g-3 mb-4">
         <div className="col-12 col-md-4">
           <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
@@ -216,7 +230,6 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Performance Bar */}
       <div className="card shadow border-0 mb-4" style={{ borderRadius: 12 }}>
         <div className="card-body p-4">
           <div className="d-flex justify-content-between mb-2">
@@ -232,7 +245,6 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Question Review */}
       {r.resultItems?.length > 0 && (
         <div>
           <h5 className="fw-bold mb-3" style={{ color: 'var(--app-text)' }}>

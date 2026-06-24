@@ -36,7 +36,6 @@ export const DashboardPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="surface p-4"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   const cards = summary?.cards || {};
@@ -91,104 +90,112 @@ export const DashboardPage = () => {
     <>
       <PageHeader title="Dashboard" subtitle="Financial and exam system overview." />
 
-      <div className="row g-3 mb-4">
-        {metrics.map((stat) => (
-          <div className="col-sm-6 col-xl-4" key={stat.label}>
-            <div className={`stat-card ${stat.borderClass}`}>
-              <div className="d-flex align-items-center gap-3">
-                <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
-                  <i className={`bi ${stat.icon}`} />
-                </div>
-                <div className="min-w-0">
-                  <div className="stat-value" style={{ color: stat.iconColor }}>{stat.value}</div>
-                  <small className="stat-label">{stat.label}</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="row g-4">
-        <div className="col-xl-8">
-          <div className="surface p-3 h-100">
-            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-              <div>
-                <h2 className="h6 fw-bold mb-1">Monthly Income</h2>
-                <small className="text-secondary">Revenue collected by payment month.</small>
-              </div>
-              <span className="badge bg-primary">{money(cards.totalRevenue)} collected</span>
-            </div>
-            <div style={{ height: 340 }}>
-              {monthlyIncome.length ? (
-                <Bar data={incomeChartData} options={incomeChartOptions} />
-              ) : (
-                <div className="d-flex align-items-center justify-content-center h-100 text-secondary">No revenue collected yet.</div>
-              )}
-            </div>
-          </div>
+      {loading ? (
+        <div className="surface p-4">
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
         </div>
-
-        <div className="col-xl-4">
-          <div className="surface p-3 h-100">
-            <h2 className="h6 fw-bold mb-3">Top Due Students</h2>
-            {highestDue.length ? (
-              <div className="d-flex flex-column gap-2">
-                {highestDue.map((item) => (
-                  <div key={item._id} className="d-flex justify-content-between align-items-center p-2 rounded-3" style={{ background: 'var(--app-bg)' }}>
-                    <div>
-                      <div className="fw-semibold">{item.student?.name || 'Student'}</div>
-                      <small className="text-secondary">{item.student?.studentId || '-'}</small>
+      ) : (
+        <>
+          <div className="row g-3 mb-4">
+            {metrics.map((stat) => (
+              <div className="col-sm-6 col-xl-4" key={stat.label}>
+                <div className={`stat-card ${stat.borderClass}`}>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
+                      <i className={`bi ${stat.icon}`} />
                     </div>
-                    <div className="fw-bold text-danger">{money(item.dueAmount)}</div>
+                    <div className="min-w-0">
+                      <div className="stat-value" style={{ color: stat.iconColor }}>{stat.value}</div>
+                      <small className="stat-label">{stat.label}</small>
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
-            ) : (
-              <div className="text-secondary">No pending dues.</div>
-            )}
+            ))}
           </div>
-        </div>
 
-        <div className="col-12">
-          <div className="surface p-3">
-            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-              <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
-              <span className="small text-secondary">Last 5 payments by date & time</span>
+          <div className="row g-4">
+            <div className="col-xl-8">
+              <div className="surface p-3 h-100">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div>
+                    <h2 className="h6 fw-bold mb-1">Monthly Income</h2>
+                    <small className="text-secondary">Revenue collected by payment month.</small>
+                  </div>
+                  <span className="badge bg-primary">{money(cards.totalRevenue)} collected</span>
+                </div>
+                <div style={{ height: 340 }}>
+                  {monthlyIncome.length ? (
+                    <Bar data={incomeChartData} options={incomeChartOptions} />
+                  ) : (
+                    <div className="d-flex align-items-center justify-content-center h-100 text-secondary">No revenue collected yet.</div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="table-responsive">
-              <table className="table align-middle">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Student ID</th>
-                    <th>Amount</th>
-                    <th>Fee Type</th>
-                    <th>Mode</th>
-                    <th>Date & Time</th>
-                    <th>Transaction</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentPayments.length === 0 ? (
-                    <tr><td colSpan="7" className="text-center text-secondary">No payments recorded yet.</td></tr>
-                  ) : recentPayments.map((payment, index) => (
-                    <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}-${index}`}>
-                      <td className="fw-semibold">{payment.studentName}</td>
-                      <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
-                      <td className="fw-semibold text-success">{money(payment.amount)}</td>
-                      <td>{payment.feeName || '-'}</td>
-                      <td>{payment.paymentMode || '-'}</td>
-                      <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
-                      <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="col-xl-4">
+              <div className="surface p-3 h-100">
+                <h2 className="h6 fw-bold mb-3">Top Due Students</h2>
+                {highestDue.length ? (
+                  <div className="d-flex flex-column gap-2">
+                    {highestDue.map((item) => (
+                      <div key={item._id} className="d-flex justify-content-between align-items-center p-2 rounded-3" style={{ background: 'var(--app-bg)' }}>
+                        <div>
+                          <div className="fw-semibold">{item.student?.name || 'Student'}</div>
+                          <small className="text-secondary">{item.student?.studentId || '-'}</small>
+                        </div>
+                        <div className="fw-bold text-danger">{money(item.dueAmount)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-secondary">No pending dues.</div>
+                )}
+              </div>
+            </div>
+
+            <div className="col-12">
+              <div className="surface p-3">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
+                  <span className="small text-secondary">Last 5 payments by date & time</span>
+                </div>
+                <div className="table-responsive">
+                  <table className="table align-middle">
+                    <thead>
+                      <tr>
+                        <th>Student</th>
+                        <th>Student ID</th>
+                        <th>Amount</th>
+                        <th>Fee Type</th>
+                        <th>Mode</th>
+                        <th>Date & Time</th>
+                        <th>Transaction</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentPayments.length === 0 ? (
+                        <tr><td colSpan="7" className="text-center text-secondary">No payments recorded yet.</td></tr>
+                      ) : recentPayments.map((payment, index) => (
+                        <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}-${index}`}>
+                          <td className="fw-semibold">{payment.studentName}</td>
+                          <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
+                          <td className="fw-semibold text-success">{money(payment.amount)}</td>
+                          <td>{payment.feeName || '-'}</td>
+                          <td>{payment.paymentMode || '-'}</td>
+                          <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
+                          <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </>
   );
 };
