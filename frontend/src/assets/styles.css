@@ -28,13 +28,15 @@
   --app-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.05);
   --app-shadow-xl: 0 20px 50px rgba(79, 70, 229, 0.15);
 
-  --sidebar-bg: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
-  --sidebar-width: 280px;
+  /* Sidebar - Professional Dark Slate with Indigo Accent */
+  --sidebar-bg: #111827;
+  --sidebar-width: 270px;
   --sidebar-link: #94a3b8;
   --sidebar-active: #ffffff;
-  --sidebar-hover: rgba(255, 255, 255, 0.08);
-  --sidebar-active-bg: rgba(79, 70, 229, 0.3);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-active-bg: rgba(79, 70, 229, 0.18);
   --sidebar-active-border: #4f46e5;
+  --sidebar-icon-opacity: 0.7;
 
   --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
@@ -43,6 +45,14 @@
   --gradient-info: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
 
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Border accent colors for dashboard cards (more subtle palette) */
+  --card-border-blue: #4f46e5;
+  --card-border-green: #059669;
+  --card-border-orange: #d97706;
+  --card-border-purple: #7c3aed;
+  --card-border-red: #dc2626;
+  --card-border-teal: #0891b2;
 }
 
 /* ----- Dark Mode ----- */
@@ -52,7 +62,7 @@
   --app-border: #334155;
   --app-text: #f1f5f9;
   --app-muted: #94a3b8;
-  --sidebar-bg: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+  --sidebar-bg: #0a0f1a;
   --app-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --app-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
@@ -64,8 +74,8 @@ body {
   background: var(--app-bg);
   color: var(--app-text);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -100,63 +110,65 @@ body {
 }
 
 /* =============================================
-   SIDEBAR - Premium Dark Navy Gradient
+   SIDEBAR - Professional Dark Slate Theme
    ============================================= */
 .sidebar {
   background: var(--sidebar-bg);
   color: var(--sidebar-link);
-  padding: 24px 16px;
+  padding: 20px 14px;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 30px rgba(0, 0, 0, 0.15);
   scrollbar-width: thin;
 }
 
 .sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 8px 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 20px;
+  padding: 0 6px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 18px;
 }
 
 .sidebar-brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 17px;
   color: white;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  flex-shrink: 0;
 }
 
 .sidebar-brand-text {
   color: white;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .sidebar-brand-sub {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.65rem;
 }
 
 .sidebar-section {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.25);
-  padding: 16px 12px 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.18);
+  padding: 14px 10px 6px;
   font-weight: 600;
 }
 
@@ -166,12 +178,12 @@ body {
   gap: 12px;
   color: var(--sidebar-link);
   text-decoration: none;
-  padding: 12px 14px;
-  border-radius: 10px;
-  margin-bottom: 2px;
-  font-size: 0.875rem;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 1px;
+  font-size: 0.85rem;
   font-weight: 500;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   position: relative;
 }
 
@@ -184,26 +196,57 @@ body {
 }
 
 .sidebar-link:hover {
-  color: var(--sidebar-active);
-  background: var(--sidebar-hover);
-  transform: translateX(2px);
+  color: #cbd5e1;
+  background: var(--sidebar-hover-bg);
 }
 
 .sidebar-link.active {
   color: var(--sidebar-active);
   background: var(--sidebar-active-bg);
   box-shadow: inset 3px 0 0 var(--sidebar-active-border);
+  font-weight: 600;
 }
 
 .sidebar-link i {
-  font-size: 1.2rem;
-  width: 22px;
+  font-size: 1.05rem;
+  width: 20px;
   text-align: center;
   flex-shrink: 0;
+  color: var(--sidebar-link);
+  opacity: var(--sidebar-icon-opacity);
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-link:hover i {
+  opacity: 1;
+  color: #cbd5e1;
+}
+
+.sidebar-link.active i {
+  opacity: 1;
+  color: white;
 }
 
 .sidebar-link span {
   flex: 1;
+}
+
+/* Logout link styling */
+.sidebar-button.sidebar-link {
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+  border-radius: 0 0 8px 8px;
+}
+
+.sidebar-button.sidebar-link:hover {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.sidebar-button.sidebar-link:hover i {
+  color: #fca5a5;
+  opacity: 1;
 }
 
 /* ----- Main Panel ----- */
@@ -214,7 +257,7 @@ body {
 
 /* ----- Top Bar ----- */
 .topbar {
-  min-height: 72px;
+  min-height: 64px;
   border-bottom: 1px solid var(--app-border);
   background: var(--app-surface);
   position: sticky;
@@ -225,7 +268,7 @@ body {
 
 /* ----- Content Area ----- */
 .content-wrap {
-  padding: 28px;
+  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -242,16 +285,6 @@ body {
 }
 
 .surface:hover {
-  box-shadow: var(--app-shadow-lg);
-}
-
-.metric-card {
-  min-height: 120px;
-  transition: var(--transition);
-}
-
-.metric-card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--app-shadow-lg);
 }
 
@@ -303,58 +336,116 @@ body {
   box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
 }
 
-/* Stat cards with tinted backgrounds */
+/* =============================================
+   DASHBOARD STAT CARDS - Clean Minimal Design
+   ============================================= */
 .stat-card {
   border: none;
-  border-radius: var(--app-radius);
-  padding: 20px;
-  transition: var(--transition);
+  border-radius: var(--app-radius-sm);
+  padding: 16px 18px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .stat-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--app-shadow-lg);
 }
 
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 2px 0 0 2px;
+}
+
 .stat-card-blue {
-  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-  color: #4338ca;
+  border-left: 3px solid var(--card-border-blue);
+}
+.stat-card-blue::before {
+  background: var(--card-border-blue);
 }
 
 .stat-card-green {
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-  color: #059669;
+  border-left: 3px solid var(--card-border-green);
+}
+.stat-card-green::before {
+  background: var(--card-border-green);
 }
 
 .stat-card-amber {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7);
-  color: #d97706;
+  border-left: 3px solid var(--card-border-orange);
+}
+.stat-card-amber::before {
+  background: var(--card-border-orange);
 }
 
 .stat-card-purple {
-  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-  color: #7c3aed;
+  border-left: 3px solid var(--card-border-purple);
+}
+.stat-card-purple::before {
+  background: var(--card-border-purple);
 }
 
 .stat-card-red {
-  background: linear-gradient(135deg, #fef2f2, #fecaca);
-  color: #dc2626;
+  border-left: 3px solid var(--card-border-red);
+}
+.stat-card-red::before {
+  background: var(--card-border-red);
 }
 
 .stat-card-teal {
-  background: linear-gradient(135deg, #ecfeff, #cffafe);
-  color: #0891b2;
+  border-left: 3px solid var(--card-border-teal);
+}
+.stat-card-teal::before {
+  background: var(--card-border-teal);
+}
+
+/* Card value typography */
+.stat-card .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-card .stat-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--app-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Responsive stat card */
+@media (max-width: 576px) {
+  .stat-card {
+    padding: 12px 14px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+  }
 }
 
 /* =============================================
    BUTTONS - Premium Rounded Design
    ============================================= */
 .btn-premium {
-  border-radius: 10px;
-  padding: 10px 22px;
+  border-radius: 8px;
+  padding: 8px 18px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   transition: var(--transition);
   border: none;
   cursor: pointer;
@@ -402,18 +493,19 @@ body {
 }
 
 .btn-premium-sm {
-  padding: 7px 16px;
-  font-size: 0.8125rem;
-  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  border-radius: 6px;
 }
 
 /* Override Bootstrap buttons */
 .btn {
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 0.875rem;
-  padding: 10px 22px;
+  font-size: 0.8125rem;
+  padding: 8px 18px;
   transition: var(--transition);
+  line-height: 1.4;
 }
 
 .btn:hover {
@@ -462,26 +554,26 @@ body {
 }
 
 .btn-sm {
-  padding: 7px 16px;
-  font-size: 0.8125rem;
-  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  border-radius: 6px;
 }
 
 .btn-icon {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 /* =============================================
    TABLES - Premium Styling
    ============================================= */
 .table-container {
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-sm);
   box-shadow: var(--app-shadow);
   overflow: hidden;
   border: 1px solid var(--app-border);
@@ -493,10 +585,10 @@ body {
 }
 
 .table thead th {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 14px 16px;
+  padding: 12px 14px;
   white-space: nowrap;
   font-weight: 700;
 }
@@ -508,10 +600,11 @@ body {
 }
 
 .table tbody td {
-  padding: 14px 16px;
+  padding: 12px 14px;
   vertical-align: middle;
   border-bottom: 1px solid var(--app-border);
   color: var(--app-text);
+  font-size: 0.8125rem;
 }
 
 .table tbody tr:last-child td {
@@ -536,10 +629,10 @@ body {
    FORMS - Premium Styling
    ============================================= */
 .form-control, .form-select {
-  border-radius: 10px;
+  border-radius: 8px;
   border: 2px solid var(--app-border);
-  padding: 10px 14px;
-  font-size: 0.875rem;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
   transition: var(--transition);
   background: var(--app-surface);
   color: var(--app-text);
@@ -552,16 +645,16 @@ body {
 }
 
 .form-control-sm {
-  padding: 7px 12px;
-  font-size: 0.8125rem;
-  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  border-radius: 6px;
 }
 
 .form-label {
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--app-text);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 /* =============================================
@@ -569,9 +662,9 @@ body {
    ============================================= */
 .badge {
   font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 0.7rem;
 }
 
 .badge.bg-success {
@@ -600,12 +693,13 @@ body {
    ============================================= */
 .progress {
   background: var(--app-border);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
+  font-size: 0.75rem;
 }
 
 .progress-bar {
-  border-radius: 8px;
+  border-radius: 6px;
   transition: width 0.5s ease;
 }
 
@@ -663,11 +757,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 24px 0;
+  padding: 20px 24px 0;
 }
 
 .modal-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   margin: 0;
 }
@@ -676,12 +770,12 @@ body {
   background: none;
   border: none;
   color: var(--app-muted);
-  font-size: 1rem;
+  font-size: 0.875rem;
   padding: 4px;
   cursor: pointer;
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -693,8 +787,8 @@ body {
   color: var(--app-text);
 }
 
-.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
-.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 24px 24px; }
+.modal-body { padding: 16px 24px; overflow-y: auto; flex: 1; }
+.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 24px 20px; }
 
 /* =============================================
    DRAWER - Right Side Sliding Panel
@@ -748,13 +842,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--app-border);
   flex-shrink: 0;
 }
 
 .drawer-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   margin: 0;
   color: var(--app-text);
@@ -764,12 +858,12 @@ body {
   background: none;
   border: none;
   color: var(--app-muted);
-  font-size: 1rem;
+  font-size: 0.875rem;
   padding: 4px;
   cursor: pointer;
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -782,7 +876,7 @@ body {
 }
 
 .drawer-body {
-  padding: 24px;
+  padding: 20px;
   overflow-y: auto;
   flex: 1;
 }
@@ -831,7 +925,7 @@ body {
   }
 
   .drawer-header {
-    padding: 16px;
+    padding: 14px 16px;
   }
 
   .fee-drawer-table thead th,
@@ -920,7 +1014,7 @@ body {
   }
 
   .topbar {
-    min-height: 64px;
+    min-height: 56px;
   }
 
   /* Grid adjustments */
@@ -937,19 +1031,11 @@ body {
   }
 
   .topbar {
-    min-height: 56px;
+    min-height: 52px;
   }
 
   .topbar .fw-semibold {
-    font-size: 0.85rem;
-  }
-
-  .stat-card {
-    padding: 14px;
-  }
-
-  .stat-card .fs-3 {
-    font-size: 1.5rem !important;
+    font-size: 0.8rem;
   }
 
   .table-container {
@@ -958,18 +1044,18 @@ body {
 
   .table thead th,
   .table tbody td {
-    padding: 10px 12px;
-    font-size: 0.8125rem;
+    padding: 8px 10px;
+    font-size: 0.75rem;
   }
 
   .btn {
-    padding: 8px 16px;
-    font-size: 0.8125rem;
+    padding: 6px 14px;
+    font-size: 0.75rem;
   }
 
   .btn-sm {
-    padding: 5px 12px;
-    font-size: 0.75rem;
+    padding: 4px 10px;
+    font-size: 0.7rem;
   }
 
   /* Stack 2-col grids to single */
@@ -1002,8 +1088,8 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px 18px;
-  border-radius: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.08);
   animation: toastSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   background: var(--app-surface);
@@ -1030,15 +1116,15 @@ body {
 
 .toast-title {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--app-text);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .toast-message {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--app-muted);
   line-height: 1.5;
 }
@@ -1047,12 +1133,12 @@ body {
   background: none;
   border: none;
   color: var(--app-muted);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   padding: 4px;
   cursor: pointer;
-  border-radius: 6px;
-  width: 26px;
-  height: 26px;
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1114,8 +1200,8 @@ body {
 }
 
 .question-form-tab-content .btn-outline-primary.btn-sm {
-  border-radius: 8px;
-  font-size: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
 }
 
 /* Tab hover effect */
@@ -1141,7 +1227,7 @@ body {
 
 /* Code block in paste tab */
 .question-form-tab-content code {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--app-text);
 }
@@ -1178,7 +1264,7 @@ body {
   justify-content: center;
   padding: 16px;
   color: var(--primary);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .loading-spinner i {
@@ -1214,16 +1300,68 @@ body {
 @media (max-width: 576px) {
   .sticky-top .btn-sm.rounded-pill {
     padding: 4px 10px;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   
   .sticky-top .rounded-pill.border {
     padding: 4px 10px !important;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     min-width: 60px !important;
   }
   
   .sticky-top h5.fw-bold {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
+}
+
+/* =============================================
+   DASHBOARD STAT CARD - New Clean Style
+   (Applied via inline classes in JSX)
+   ============================================= */
+.dashboard-stat-card {
+  border: none !important;
+  border-radius: var(--app-radius-sm) !important;
+  padding: 16px 18px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: default;
+  background: var(--app-surface) !important;
+  box-shadow: var(--app-shadow) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--app-shadow-lg) !important;
+}
+
+/* Icon circle inside stat card */
+.dashboard-stat-icon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Fee summary card styling to match */
+.fee-stat-card {
+  border: none !important;
+  border-radius: var(--app-radius-sm) !important;
+  padding: 14px 16px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: default;
+  background: var(--app-surface) !important;
+  box-shadow: var(--app-shadow) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.fee-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--app-shadow-lg) !important;
 }

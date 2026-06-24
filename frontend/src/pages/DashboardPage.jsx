@@ -79,54 +79,29 @@ export const DashboardPage = () => {
   };
 
   const metrics = [
-    { label: 'Total Students', value: cards.totalStudents || 0, icon: 'bi-people', bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', color: '#1565c0' },
-    { label: 'Total Revenue', value: money(cards.totalRevenue), icon: 'bi-currency-rupee', bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2e7d32' },
-    { label: 'Total Due', value: money(cards.totalDue), icon: 'bi-exclamation-circle', bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)', color: '#c62828' },
-    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', bg: 'linear-gradient(135deg, #ecfeff, #cffafe)', color: '#0891b2' },
-    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)', color: '#7b1fa2' },
-    { label: 'Active Exams', value: cards.activeExams || cards.pendingExams || 0, icon: 'bi-play-circle', bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', color: '#e65100' }
+    { label: 'Total Students', value: cards.totalStudents || 0, icon: 'bi-people', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
+    { label: 'Total Revenue', value: money(cards.totalRevenue), icon: 'bi-currency-rupee', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
+    { label: 'Total Due', value: money(cards.totalDue), icon: 'bi-exclamation-circle', borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
+    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2' },
+    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed' },
+    { label: 'Active Exams', value: cards.activeExams || cards.pendingExams || 0, icon: 'bi-play-circle', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' }
   ];
 
   return (
     <>
       <PageHeader title="Dashboard" subtitle="Financial and exam system overview." />
 
-      {/* Welcome Card */}
-      {/* <div
-        className="card shadow border-0 mb-4 text-white"
-        style={{
-          borderRadius: 12,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        }}
-      >
-        <div className="card-body py-3 px-4">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h4 className="fw-bold mb-1">Welcome Back!</h4>
-              <small className="opacity-75">
-                Track your exams and results.
-              </small>
-            </div>
-
-            <div className="text-end">
-              <h3 className="fw-bold mb-0">#</h3>
-              <small className="opacity-75">Available</small>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       <div className="row g-3 mb-4">
         {metrics.map((stat) => (
           <div className="col-sm-6 col-xl-4" key={stat.label}>
-            <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: stat.bg }}>
-              <div className="card-body d-flex align-items-center gap-3 p-3">
-                <div className="d-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm" style={{ width: 56, height: 56, minWidth: 56 }}>
-                  <i className={`bi ${stat.icon}`} style={{ color: stat.color, fontSize: 24 }} />
+            <div className={`stat-card ${stat.borderClass}`}>
+              <div className="d-flex align-items-center gap-3">
+                <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
+                  <i className={`bi ${stat.icon}`} />
                 </div>
                 <div className="min-w-0">
-                  <div className="fs-3 fw-bold" style={{ color: stat.color }}>{stat.value}</div>
-                  <small className="fw-medium" style={{ color: stat.color }}>{stat.label}</small>
+                  <div className="stat-value" style={{ color: stat.iconColor }}>{stat.value}</div>
+                  <small className="stat-label">{stat.label}</small>
                 </div>
               </div>
             </div>
