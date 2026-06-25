@@ -82,8 +82,8 @@ export const DashboardPage = () => {
     { label: 'Total Students', value: cards.totalStudents || 0, icon: 'bi-people', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
     { label: 'Total Revenue', value: money(cards.totalRevenue), icon: 'bi-currency-rupee', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
     { label: 'Total Due', value: money(cards.totalDue), icon: 'bi-exclamation-circle', borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
-    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2' },
-    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed' },
+    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2', mobileHide: true },
+    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed', mobileHide: true },
     { label: 'Active Exams', value: cards.activeExams || cards.pendingExams || 0, icon: 'bi-play-circle', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' }
   ];
 
@@ -99,7 +99,7 @@ export const DashboardPage = () => {
         <>
           <div className="row g-3 mb-4">
             {metrics.map((stat) => (
-              <div className="col-sm-6 col-xl-4" key={stat.label}>
+              <div className={`col-sm-6 col-xl-4 ${stat.mobileHide ? 'd-none d-sm-block' : ''}`} key={stat.label}>
                 <div className={`stat-card ${stat.borderClass}`}>
                   <div className="d-flex align-items-center gap-3">
                     <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>

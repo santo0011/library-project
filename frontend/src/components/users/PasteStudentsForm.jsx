@@ -13,7 +13,7 @@ const parseStudents = (text) => {
       student.name = nameMatch[1].trim();
     } else {
       student.name = '';
-      errors.push('Full Name not found. Use format: "Full Name: John Doe"');
+      errors.push('Full Name not found. Use format: "Full Name: Santo Biswas"');
     }
 
     const emailMatch = block.match(/Email\s*:\s*(.+)/i);
@@ -21,7 +21,7 @@ const parseStudents = (text) => {
       student.email = emailMatch[1].trim().toLowerCase();
     } else {
       student.email = '';
-      errors.push('Email not found. Use format: "Email: john@example.com"');
+      errors.push('Email not found. Use format: "Email: santobiswas0011@gmail.com"');
     }
 
     const passwordMatch = block.match(/Password\s*:\s*(.+)/i);
@@ -123,12 +123,12 @@ export const PasteStudentsForm = ({ onSubmit, onClose, busy }) => {
           <div className="mb-3 p-3 rounded-3 bg-light small">
             <p className="fw-semibold mb-2">Expected format:</p>
             <code className="d-block p-2 bg-white rounded-2 border" style={{ whiteSpace: 'pre-wrap', fontSize: '0.8rem', lineHeight: '1.6' }}>
-              Full Name: John Doe{'\n'}
-              Email: john@example.com{'\n'}
+              Full Name: Santo Biswas{'\n'}
+              Email: santobiswas0011@gmail.com{'\n'}
               Password: 123456{'\n'}
-              Mobile Number: 9876543210{'\n'}
+              Mobile Number: 7584049912{'\n'}
               Gender: Male{'\n'}
-              Date of Birth: 2005-05-10
+              Date of Birth: 2002-06-24
             </code>
           </div>
 
@@ -146,7 +146,7 @@ export const PasteStudentsForm = ({ onSubmit, onClose, busy }) => {
               rows="10"
               value={text}
               onChange={handleTextChange}
-              placeholder={`Paste student data here...\n\nExample:\nFull Name: John Doe\nEmail: john@example.com\nPassword: 123456\nMobile Number: 9876543210\nGender: Male\nDate of Birth: 2005-05-10`}
+              placeholder={`Paste student data here...\n\nExample:\nFull Name: Santo Biswas\nEmail: santobiswas0011@gmail.com\nPassword: 123456\nMobile Number: 7584049912\nGender: Male\nDate of Birth: 2002-06-24`}
               style={{ fontSize: '0.875rem', lineHeight: '1.6' }}
             />
           </div>
