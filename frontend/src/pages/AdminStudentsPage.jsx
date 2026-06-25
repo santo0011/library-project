@@ -110,6 +110,9 @@ export const AdminStudentsPage = () => {
       await api.patch(`/students/${editing._id}`, payload);
       setEditing(null);
       load();
+      showToast('success', 'Student updated successfully.');
+    } catch (err) {
+      showToast('error', err.response?.data?.message || 'Failed to update student');
     } finally {
       setBusy(false);
     }

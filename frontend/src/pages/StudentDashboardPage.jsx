@@ -51,51 +51,6 @@ const PerformanceSummary = ({ results }) => {
   );
 };
 
-/* ─── Stat Cards ─── */
-const StatCards = ({ exams, dash, results }) => {
-  const now = useMemo(() => new Date(), []);
-
-  const stats = useMemo(() => {
-    const availableExams = exams.filter((e) => {
-      if (e.attempted) return false;
-      const start = new Date(e.startDate);
-      const end = new Date(e.endDate);
-      return now >= start && now <= end;
-    }).length;
-    const attemptedExams = exams.filter((e) => e.attempted).length;
-    const avgPercentage = results.length
-      ? (results.reduce((sum, r) => sum + (r.percentage || 0), 0) / results.length).toFixed(1)
-      : 0;
-    const pendingExams = dash.pendingExams || results.filter((r) => r.status === 'in_progress').length;
-    return { availableExams, attemptedExams, pendingExams, avgPercentage };
-  }, [exams, dash, results, now]);
-
-  return (
-    <div className="row g-3 mb-4">
-      {[
-        { label: 'Available Exams', value: stats.availableExams, icon: 'bi-journal-text', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
-        { label: 'Attempted', value: stats.attemptedExams, icon: 'bi-check-circle', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
-        { label: 'Pending', value: stats.pendingExams, icon: 'bi-hourglass', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' },
-        { label: 'Avg Score', value: `${stats.avgPercentage}%`, icon: 'bi-award', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed' }
-      ].map((stat) => (
-        <div className="col-sm-6 col-xl-3" key={stat.label}>
-          <div className={`stat-card ${stat.borderClass}`}>
-            <div className="d-flex align-items-center gap-3">
-              <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
-                <i className={`bi ${stat.icon}`} />
-              </div>
-              <div>
-                <div className="stat-value" style={{ color: stat.iconColor }}>{stat.value}</div>
-                <small className="stat-label">{stat.label}</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 /* ─── Available Exams Section ─── */
 const AvailableExamsSection = ({ exams }) => {
   const navigate = useNavigate();
@@ -232,9 +187,6 @@ export const StudentDashboardPage = () => {
         </div>
       ) : (
         <>
-          {/* Stat Cards */}
-          <StatCards exams={exams} dash={dash} results={results} />
-
           {/* Available Exams and Recent Results */}
           <div className="row g-4">
             <div className="col-lg-6">

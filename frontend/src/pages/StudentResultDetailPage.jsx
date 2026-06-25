@@ -13,8 +13,6 @@ export const StudentResultDetailPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Reset state on every navigation — this fires BEFORE the next render
-    // when location.pathname changes (list vs detail are different paths)
     setLoading(true);
     setResult(null);
     setError('');
@@ -32,10 +30,8 @@ export const StudentResultDetailPage = () => {
     }
   }, [id, location.pathname]);
 
-  // List view — header shows immediately, loader for content
+  // List view
   if (!id) {
-    // Defensive guard: if result is still a detail object (stale data from navigation),
-    // show loading instead of crashing on result.results being undefined
     const isStaleDetail = result && !Array.isArray(result.results);
     return (
       <div>
@@ -54,51 +50,85 @@ export const StudentResultDetailPage = () => {
             <i className="bi bi-exclamation-triangle flex-shrink-0" />
             <span>{error}</span>
           </div>
-        ) : result?.results?.length === 0 ? (
-          <div className="card shadow border-0" style={{ borderRadius: 16 }}>
-            <div className="card-body text-center py-5">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style={{ width: 72, height: 72 }}>
-                <i className="bi bi-journal-x text-secondary fs-2" />
-              </div>
-              <p className="text-secondary mb-0">No results yet. Complete an exam to see your results.</p>
-            </div>
-          </div>
         ) : (
-          <ResponsiveTable
-            columns={[
-              { key: 'examName', label: 'Exam Name', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
-              { key: 'totalMarks', label: 'Total Marks', render: (r) => <>{r.totalMarks}</> },
-              { key: 'score', label: 'Obtained', render: (r) => <span className="fw-semibold">{r.score}</span> },
-              { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
-              { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
-              { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</> },
-              {
-                key: 'action', label: 'Action', render: (r) => (
-                  <button className="btn btn-sm rounded-pill text-white px-3"
-                    style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
-                    onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
-                    <i className="bi bi-eye me-1" />View
-                  </button>
-                )
-              },
-            ]}
-            rows={result.results}
-            mobileSummary={['examName', 'percentage']}
-            onRowClick={(r) => navigate(`/student/results/${r._id}`)}
-            emptyMessage="No results yet. Complete an exam to see your results."
-          />
+          <>
+            {/* Exam Summary Stats - moved from Dashboard */}
+            {result?.results?.length > 0 && (
+              <div className="row g-3 mb-4">
+                {(() => {
+                  const res = result.results;
+                  const totalExams = res.length;
+                  const passed = res.filter((r) => r.passed).length;
+                  const failed = res.filter((r) => !r.passed).length;
+                  const avgPercentage = (res.reduce((sum, r) => sum + (r.percentage || 0), 0) / totalExams).toFixed(1);
+                  return [
+                    { label: 'Total Exams', value: totalExams, icon: 'bi-journal-text', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
+                    { label: 'Passed', value: passed, icon: 'bi-check-circle', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
+                    { label: 'Failed', value: failed, icon: 'bi-x-circle', borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
+                    { label: 'Avg Score', value: `${avgPercentage}%`, icon: 'bi-award', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2' }
+                  ].map((stat) => (
+                    <div className="col-sm-6 col-xl-3" key={stat.label}>
+                      <div className={`stat-card ${stat.borderClass}`}>
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
+                            <i className={`bi ${stat.icon}`} />
+                          </div>
+                          <div>
+                            <div className="stat-value" style={{ color: stat.iconColor }}>{stat.value}</div>
+                            <small className="stat-label">{stat.label}</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {result?.results?.length === 0 ? (
+              <div className="card shadow border-0" style={{ borderRadius: 16 }}>
+                <div className="card-body text-center py-5">
+                  <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style={{ width: 72, height: 72 }}>
+                    <i className="bi bi-journal-x text-secondary fs-2" />
+                  </div>
+                  <p className="text-secondary mb-0">No results yet. Complete an exam to see your results.</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveTable
+                columns={[
+                  { key: 'examName', label: 'Exam Name', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
+                  { key: 'totalMarks', label: 'Total Marks', render: (r) => <>{r.totalMarks}</> },
+                  { key: 'score', label: 'Obtained', render: (r) => <span className="fw-semibold">{r.score}</span> },
+                  { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
+                  { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
+                  { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</> },
+                  {
+                    key: 'action', label: 'Action', render: (r) => (
+                      <button className="btn btn-sm rounded-pill text-white px-3"
+                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
+                        <i className="bi bi-eye me-1" />View
+                      </button>
+                    )
+                  },
+                ]}
+                rows={result.results}
+                mobileSummary={['examName', 'percentage']}
+                onRowClick={(r) => navigate(`/student/results/${r._id}`)}
+                emptyMessage="No results yet. Complete an exam to see your results."
+              />
+            )}
+          </>
         )}
       </div>
     );
   }
 
-  // Detail view (single result) — loading state
+  // Detail view (single result)
   if (loading) {
     return (
       <div>
-        {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
-          <i className="bi bi-arrow-left me-1" /> Back to Results
-        </button> */}
         <div className="surface p-4">
           <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
         </div>
@@ -125,10 +155,6 @@ export const StudentResultDetailPage = () => {
 
   return (
     <div>
-      {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
-        <i className="bi bi-arrow-left me-1" /> Back to Results
-      </button> */}
-
       <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 16, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div className="card-body px-4">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -149,7 +175,7 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Result summary stats — 6 cards in 3x2 grid on desktop, 2 per row on mobile */}
+      {/* Result summary stats */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-4">
           <div className="stat-card stat-card-blue">
