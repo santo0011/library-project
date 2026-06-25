@@ -486,42 +486,42 @@ body {
 }
 
 .stat-card-blue {
-  border-left: 3px solid var(--card-border-blue);
+  border-left: 2px solid var(--card-border-blue);
 }
 .stat-card-blue::before {
   background: var(--card-border-blue);
 }
 
 .stat-card-green {
-  border-left: 3px solid var(--card-border-green);
+  border-left: 2px solid var(--card-border-green);
 }
 .stat-card-green::before {
   background: var(--card-border-green);
 }
 
 .stat-card-amber {
-  border-left: 3px solid var(--card-border-orange);
+  border-left: 2px solid var(--card-border-orange);
 }
 .stat-card-amber::before {
   background: var(--card-border-orange);
 }
 
 .stat-card-purple {
-  border-left: 3px solid var(--card-border-purple);
+  border-left: 2px solid var(--card-border-purple);
 }
 .stat-card-purple::before {
   background: var(--card-border-purple);
 }
 
 .stat-card-red {
-  border-left: 3px solid var(--card-border-red);
+  border-left: 2px solid var(--card-border-red);
 }
 .stat-card-red::before {
   background: var(--card-border-red);
 }
 
 .stat-card-teal {
-  border-left: 3px solid var(--card-border-teal);
+  border-left: 2px solid var(--card-border-teal);
 }
 .stat-card-teal::before {
   background: var(--card-border-teal);
