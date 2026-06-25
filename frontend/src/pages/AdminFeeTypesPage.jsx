@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { feeService } from '../services/feeService.js';
 import { showToast, confirmAction } from '../utils/sweetAlerts.js';
 
@@ -274,90 +275,63 @@ export const AdminFeeTypesPage = () => {
           </div>
         </div>
 
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th style={{ width: 40 }}>
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={toggleSelectAll}
-                    style={{ cursor: 'pointer' }}
-                  />
-                </th>
-                <th>Name</th>
-                <th>Amount</th>
-                <th>Description</th>
-                <th>Assignments</th>
-                <th>Status</th>
-                <th className="text-end">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="7" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
-              ) : feeTypes.items.length === 0 ? (
-                <tr><td colSpan="7" className="text-center text-secondary">No fee types found.</td></tr>
-              ) : feeTypes.items.map((type) => (
-                <tr key={type._id} className={type.isActive ? '' : 'table-active'}>
-                  <td>
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={selectedIds.includes(type._id)}
-                      onChange={() => toggleSelectOne(type._id)}
-                      style={{ border: "0.6px solid #585454", cursor: "pointer" }}
-                    />
-                  </td>
-                  <td className="fw-semibold">{type.name}</td>
-                  <td>{money(type.amount)}</td>
-                  <td className="text-secondary">{type.description || '-'}</td>
-                  <td>{type.assignmentCount || 0}</td>
-                  <td>
-                    <span className={`badge ${type.isActive ? 'bg-success' : 'bg-secondary'}`}>
-                      {type.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="text-end">
-                    <button
-                      className="btn btn-sm btn-outline-primary me-1"
-                      type="button"
-                      onClick={() => openEditType(type)}
-                      disabled={busy}
-                      title="Edit"
-                    >
-                      <i className="bi bi-pencil me-1" />Edit
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger me-1"
-                      type="button"
-                      onClick={() => handleDeleteFeeType(type)}
-                      disabled={busy}
-                      title="Delete"
-                    >
-                      <i className="bi bi-trash me-1" />Delete
-                    </button>
-
-                    {/* <button
-                      className={`btn btn-sm ${type.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                      type="button"
-                      onClick={() => handleToggleStatus(type)}
-                      disabled={busy}
-                      title={type.isActive ? 'Deactivate' : 'Activate'}
-                    >
-                      <i className={`bi ${type.isActive ? 'bi-pause-circle' : 'bi-play-circle'} me-1`} />
-                      {type.isActive ? 'Deactivate' : 'Activate'}
-                    </button> */}
-
-
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* Select-all checkbox for desktop */}
+        {feeTypes.items.length > 0 && (
+          <div className="d-flex align-items-center gap-2 mb-2 px-1">
+            <div className="form-check mb-0">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleSelectAll}
+                id="select-all-fee-types"
+                style={{ cursor: "pointer" }}
+              />
+              <label className="form-check-label small" htmlFor="select-all-fee-types">Select all</label>
+            </div> 
+          </div>
+        )}
+        {loading ? (
+          <div className="loading-spinner text-center py-4"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        ) : (
+          <ResponsiveTable
+            columns={[
+              {
+                key: 'checkbox',
+                label: '',
+                render: (type) => (
+                  <div className="form-check mb-0" style={{ pointerEvents: 'auto' }}>
+                    <input className="form-check-input" type="checkbox" checked={selectedIds.includes(type._id)} onChange={() => toggleSelectOne(type._id)} style={{ border: "0.6px solid #585454", cursor: "pointer" }} />
+                  </div>
+                )
+              },
+              { key: 'name', label: 'Name', render: (type) => <span className="fw-semibold">{type.name}</span> },
+              { key: 'amount', label: 'Amount', render: (type) => <>{money(type.amount)}</> },
+              { key: 'description', label: 'Description', render: (type) => <span className="text-secondary">{type.description || '-'}</span> },
+              { key: 'assignmentCount', label: 'Assignments', render: (type) => <>{type.assignmentCount || 0}</> },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (type) => <span className={`badge ${type.isActive ? 'bg-success' : 'bg-secondary'}`}>{type.isActive ? 'Active' : 'Inactive'}</span>
+              },
+              {
+                key: 'actions',
+                label: 'Action',
+                render: (type) => (
+                  <div className="text-end" style={{ whiteSpace: 'nowrap' }}>
+                    <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => openEditType(type)} disabled={busy} title="Edit"><i className="bi bi-pencil me-1" />Edit</button>
+                    <button className="btn btn-sm btn-outline-danger me-1" type="button" onClick={() => handleDeleteFeeType(type)} disabled={busy} title="Delete"><i className="bi bi-trash me-1" />Delete</button>
+                  </div>
+                )
+              },
+            ]}
+            rows={feeTypes.items}
+            mobileSummary={['name', 'amount']}
+            mobileDetailExclude={['checkbox']}
+            selectable={{ checked: (type) => selectedIds.includes(type._id), onSelect: (type) => toggleSelectOne(type._id) }}
+            emptyMessage="No fee types found."
+          />
+        )}
 
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
           <span className="small text-secondary">Showing {showingFrom}-{showingTo} of {feeTypes.total}</span>

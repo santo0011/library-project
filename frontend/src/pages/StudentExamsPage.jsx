@@ -256,7 +256,7 @@ export const StudentExamsPage = () => {
               <div className="d-flex align-items-center gap-3 mb-3 p-3 bg-light rounded-3">
                 <i className="bi bi-info-circle text-primary fs-3" />
                 <div>
-                  <strong>Ready to begin?</strong>
+                  <strong style={{ color: "#AA1C41" }}>Ready to begin?</strong>
                   <div className="small text-secondary mt-1">
                     Duration: {startModal.durationMinutes} min • Questions: {startModal.questions?.length || 0}
                   </div>
