@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { dashboardService } from '../services/dashboardService.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -161,36 +162,20 @@ export const DashboardPage = () => {
                   <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
                   <span className="small text-secondary">Last 5 payments by date & time</span>
                 </div>
-                <div className="table-responsive">
-                  <table className="table align-middle">
-                    <thead>
-                      <tr>
-                        <th>Student</th>
-                        <th>Student ID</th>
-                        <th>Amount</th>
-                        <th>Fee Type</th>
-                        <th>Mode</th>
-                        <th>Date & Time</th>
-                        <th>Transaction</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentPayments.length === 0 ? (
-                        <tr><td colSpan="7" className="text-center text-secondary">No payments recorded yet.</td></tr>
-                      ) : recentPayments.map((payment, index) => (
-                        <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}-${index}`}>
-                          <td className="fw-semibold">{payment.studentName}</td>
-                          <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
-                          <td className="fw-semibold text-success">{money(payment.amount)}</td>
-                          <td>{payment.feeName || '-'}</td>
-                          <td>{payment.paymentMode || '-'}</td>
-                          <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
-                          <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ResponsiveTable
+                  columns={[
+                    { key: 'studentName', label: 'Student', render: (p) => <span className="fw-semibold">{p.studentName}</span> },
+                    { key: 'studentId', label: 'Student ID', render: (p) => <span className="badge text-bg-secondary">{p.studentId || '-'}</span> },
+                    { key: 'amount', label: 'Amount', render: (p) => <span className="fw-semibold text-success">{money(p.amount)}</span> },
+                    { key: 'feeName', label: 'Fee Type', render: (p) => <>{p.feeName || '-'}</> },
+                    { key: 'paymentMode', label: 'Mode', render: (p) => <>{p.paymentMode || '-'}</> },
+                    { key: 'paymentDate', label: 'Date & Time', render: (p) => <>{p.paymentDate ? moment(p.paymentDate).format('DD, MMM, YYYY') : '-'}</> },
+                    { key: 'transactionId', label: 'Transaction', render: (p) => <span className="text-truncate d-inline-block" style={{ maxWidth: 120 }} title={p.transactionId || '-'}>{p.transactionId || '-'}</span> },
+                  ]}
+                  rows={recentPayments}
+                  mobileSummary={['studentName', 'amount']}
+                  emptyMessage="No payments recorded yet."
+                />
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { loginUser, logout } from '../redux/slices/authSlice.js';
 import { showAuthToast } from '../utils/authAlerts.js';
 
@@ -9,9 +9,11 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { accessToken, status } = useSelector((state) => state.auth);
+  const { setPortal } = useOutletContext();
   const [form, setForm] = useState({ email: '', password: '', portal: 'admin' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     dispatch(logout());
@@ -46,9 +48,9 @@ export const LoginPage = () => {
       <p className="text-secondary mb-4">Sign in to the examination system.</p>
       {apiError && <div className="alert alert-danger">{apiError}</div>}
       <div className="btn-group w-100 mb-3" role="group">
-        <input type="radio" className="btn-check" name="portal" id="adminPortal" checked={form.portal === 'admin'} onChange={() => setForm({ ...form, portal: 'admin' })} />
+        <input type="radio" className="btn-check" name="portal" id="adminPortal" checked={form.portal === 'admin'} onChange={() => { setForm({ ...form, portal: 'admin' }); setPortal('admin'); }} />
         <label className="btn btn-outline-primary" htmlFor="adminPortal">Admin</label>
-        <input type="radio" className="btn-check" name="portal" id="studentPortal" checked={form.portal === 'student'} onChange={() => setForm({ ...form, portal: 'student' })} />
+        <input type="radio" className="btn-check" name="portal" id="studentPortal" checked={form.portal === 'student'} onChange={() => { setForm({ ...form, portal: 'student' }); setPortal('student'); }} />
         <label className="btn btn-outline-primary" htmlFor="studentPortal">Student</label>
       </div>
       <div className="mb-3">
@@ -58,8 +60,13 @@ export const LoginPage = () => {
       </div>
       <div className="mb-4">
         <label className="form-label" htmlFor="password">Password</label>
-        <input id="password" type="password" className={`form-control ${errors.password ? 'is-invalid' : ''}`} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
-        {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+        <div className="input-group">
+          <input id="password" type={showPassword ? 'text' : 'password'} className={`form-control ${errors.password ? 'is-invalid' : ''}`} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
+          <button className="btn btn-outline-secondary" type="button" onClick={() => setShowPassword(!showPassword)} tabIndex={-1} style={{ borderColor: errors.password ? '#dc3545' : '' }}>
+            <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`} />
+          </button>
+          {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+        </div>
       </div>
       <button className="btn btn-primary w-100 py-2" type="submit" disabled={status === 'loading'}>
         {status === 'loading' ? 'Signing in...' : 'Sign in'}

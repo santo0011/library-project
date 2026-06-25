@@ -4,6 +4,7 @@ import { ConfirmModal } from '../components/common/ConfirmModal.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
 import { QuestionFormModal } from '../components/exams/QuestionFormModal.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { examService } from '../services/examService.js';
 import Swal from 'sweetalert2';
 
@@ -253,71 +254,76 @@ export const ExamQuestionsPage = () => {
       )}
 
       <div className="surface p-3">
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={handleSelectAll}
-                      disabled={questionList.length === 0}
-                      id="select-all"
-                      style={{ cursor: "pointer" }}
-                    />
-                    <label className="form-check-label" htmlFor="select-all" />
+        {/* Select-all checkbox for desktop — placed as a row above the table */}
+        {questionList.length > 0 && (
+          <div className="d-flex align-items-center gap-2 mb-2 px-1">
+            <div className="form-check mb-0">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                checked={allSelected}
+                onChange={handleSelectAll}
+                id="select-all"
+                style={{ cursor: "pointer" }}
+              />
+              <label className="form-check-label small" htmlFor="select-all">Select all</label>
+            </div>
+          </div>
+        )}
+        <ResponsiveTable
+          columns={[
+            {
+              key: 'checkbox',
+              label: '',
+              render: (q) => (
+                <div className="form-check mb-0" style={{ pointerEvents: 'auto' }}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={selectedIds.includes(q._id)}
+                    onChange={() => handleSelectOne(q._id)}
+                    id={`check-${q._id}`}
+                    style={{ border: "0.6px solid #585454", cursor: "pointer" }}
+                  />
+                  <label className="form-check-label" htmlFor={`check-${q._id}`} />
+                </div>
+              )
+            },
+            {
+              key: 'title',
+              label: 'Question',
+              render: (q) => (
+                <>
+                  <div className="fw-semibold">{q.title}</div>
+                  <div className="small text-secondary">
+                    {q.options?.map((o, i) => (
+                      <span key={i} className={`me-2 ${i === q.correctOption ? 'text-success fw-bold' : ''}`}>
+                        {String.fromCharCode(65 + i)}. {o.text}
+                      </span>
+                    ))}
                   </div>
-                </th>
-                <th style={{ width: '44%' }}>Question</th>
-                <th>Marks</th>
-                <th>Correct Option</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {questionList.length === 0 ? (
-                <tr><td colSpan="6" className="text-secondary">No questions added yet.</td></tr>
-              ) : (
-                questionList.map((q) => (
-                  <tr key={q._id} className={selectedIds.includes(q._id) ? 'table-primary' : ''}>
-                    <td>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={selectedIds.includes(q._id)}
-                          onChange={() => handleSelectOne(q._id)}
-                          id={`check-${q._id}`}
-                          style={{ border: "0.6px solid #585454", cursor: "pointer" }}
-                        />
-                        <label className="form-check-label" htmlFor={`check-${q._id}`} />
-                      </div>
-                    </td>
-                    <td>
-                      <div className="fw-semibold">{q.title}</div>
-                      <div className="small text-secondary">
-                        {q.options?.map((o, i) => (
-                          <span key={i} className={`me-2 ${i === q.correctOption ? 'text-success fw-bold' : ''}`}>
-                            {String.fromCharCode(65 + i)}. {o.text}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>{q.marks}</td>
-                    <td><span className="badge text-bg-success">Option {String.fromCharCode(65 + q.correctOption)}</span></td>
-                    <td className="text-end">
-                      <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => handleEdit(q)} title="Edit"><i className="bi bi-pencil" /></button>
-                      <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDelete(q)} title="Delete"><i className="bi bi-trash" /></button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </>
+              )
+            },
+            { key: 'marks', label: 'Marks', render: (q) => <>{q.marks}</> },
+            { key: 'correctOption', label: 'Correct Option', render: (q) => <span className="badge text-bg-success">Option {String.fromCharCode(65 + q.correctOption)}</span> },
+            {
+              key: 'actions',
+              label: 'Actions',
+              render: (q) => (
+                <div className="text-end" style={{ whiteSpace: 'nowrap' }}>
+                  <button className="btn btn-sm btn-outline-primary me-1" type="button" onClick={() => handleEdit(q)} title="Edit"><i className="bi bi-pencil" /></button>
+                  <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDelete(q)} title="Delete"><i className="bi bi-trash" /></button>
+                </div>
+              )
+            },
+          ]}
+          rows={questionList}
+          mobileSummary={['title', 'marks']}
+          mobileDetailExclude={['checkbox']}
+          selectable={{ checked: (row) => selectedIds.includes(row._id), onSelect: (row) => handleSelectOne(row._id) }}
+          emptyMessage="No questions added yet."
+        />
       </div>
 
       <Drawer

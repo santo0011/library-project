@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import moment from 'moment';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { feeService } from '../services/feeService.js';
 import { confirmAction, showToast } from '../utils/sweetAlerts.js';
 
@@ -354,34 +355,19 @@ export const AdminFeeManagementPage = () => {
           ) : recentPayments.length === 0 ? (
             <p className="text-secondary small mb-0">No payments recorded yet.</p>
           ) : (
-            <div className="table-responsive">
-              <table className="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Amount</th>
-                    <th>Fee Type</th>
-                    <th>Mode</th>
-                    <th>Date & Time</th>
-                    <th>Transaction</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentPayments.map((payment, index) => (
-                    <tr key={payment.paymentId || index}>
-                      <td className="fw-semibold text-truncate" style={{ maxWidth: 160 }} title={payment.student?.name || '-'}>
-                        {payment.student?.name || '-'}
-                      </td>
-                      <td className="fw-semibold text-success">{money(payment.amount)}</td>
-                      <td>{payment.feeName || '-'}</td>
-                      <td>{payment.paymentMode || '-'}</td>
-                      <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY h:mm A') : '-'}</td>
-                      <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable
+              columns={[
+                { key: 'student', label: 'Student', render: (p) => <span className="fw-semibold text-truncate d-inline-block" style={{ maxWidth: 160 }} title={p.student?.name || '-'}>{p.student?.name || '-'}</span> },
+                { key: 'amount', label: 'Amount', render: (p) => <span className="fw-semibold text-success">{money(p.amount)}</span> },
+                { key: 'feeName', label: 'Fee Type', render: (p) => <>{p.feeName || '-'}</> },
+                { key: 'paymentMode', label: 'Mode', render: (p) => <>{p.paymentMode || '-'}</> },
+                { key: 'paymentDate', label: 'Date & Time', render: (p) => <>{p.paymentDate ? moment(p.paymentDate).format('DD, MMM, YYYY h:mm A') : '-'}</> },
+                { key: 'transactionId', label: 'Transaction', render: (p) => <span className="text-truncate d-inline-block" style={{ maxWidth: 120 }} title={p.transactionId || '-'}>{p.transactionId || '-'}</span> },
+              ]}
+              rows={recentPayments}
+              mobileSummary={['student', 'amount']}
+              emptyMessage="No payments recorded yet."
+            />
           )}
         </div>
       </div>
@@ -430,46 +416,70 @@ export const AdminFeeManagementPage = () => {
       </div>
 
       <div className="surface p-3">
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th style={{ width: 48 }}><input style={{ cursor: 'pointer' }} className="form-check-input" type="checkbox" checked={allPageSelected} onChange={toggleAll} /></th>
-                <th>Student Name</th>
-                <th>Student ID</th>
-                <th>Total Fee</th>
-                <th>Paid Amount</th>
-                <th>Due Amount</th>
-                <th>Status</th>
-                <th>Assigned</th>
-                <th className="text-end">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="9" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
-              ) : fees.items.length === 0 ? (
-                <tr><td colSpan="9" className="text-center text-secondary">No students found.</td></tr>
-              ) : fees.items.map((row) => (
-                <tr key={row.student._id}>
-                  <td><input style={{ border: "0.6px solid #585454", cursor: "pointer" }} className="form-check-input" type="checkbox" checked={selectedStudents.includes(row.student._id)} onChange={() => toggleStudent(row.student._id)} /></td>
-                  <td className="fw-semibold">{row.student.name}</td>
-                  <td><span className="badge text-bg-secondary">{row.student.studentId || '-'}</span></td>
-                  <td>{money(row.totalFee)}</td>
-                  <td className="text-success fw-semibold">{money(row.paidAmount)}</td>
-                  <td className={row.dueAmount > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold'}>{money(row.dueAmount)}</td>
-                  <td><span className={`badge ${statusClass[row.paymentStatus] || 'bg-secondary'}`}>{row.paymentStatus}</span></td>
-                  <td>{row.assignedFees?.length || 0}</td>
-                  <td className="text-end">
+        {/* Select-all checkbox for desktop — placed as a row above the table */}
+        {fees.items.length > 0 && (
+          <div className="d-flex align-items-center gap-2 mb-2 px-1">
+            <div className="form-check mb-0">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                checked={allPageSelected}
+                onChange={toggleAll}
+                id="select-all-fees"
+                style={{ cursor: "pointer" }}
+              />
+              <label className="form-check-label small" htmlFor="select-all-fees">Select all</label>
+            </div>
+          </div>
+        )}
+        {loading ? (
+          <div className="loading-spinner text-center py-4"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        ) : (
+          <ResponsiveTable
+            columns={[
+              {
+                key: 'checkbox',
+                label: '',
+                render: (row) => (
+                  <div className="form-check mb-0" style={{ pointerEvents: 'auto' }}>
+                    <input style={{ border: "0.6px solid #585454", cursor: "pointer" }} className="form-check-input" type="checkbox" checked={selectedStudents.includes(row.student._id)} onChange={() => toggleStudent(row.student._id)} />
+                  </div>
+                )
+              },
+              { key: 'name', label: 'Student Name', render: (row) => <span className="fw-semibold">{row.student.name}</span> },
+              { key: 'studentId', label: 'Student ID', render: (row) => <span className="badge text-bg-secondary">{row.student.studentId || '-'}</span> },
+              { key: 'totalFee', label: 'Total Fee', render: (row) => <>{money(row.totalFee)}</> },
+              { key: 'paidAmount', label: 'Paid Amount', render: (row) => <span className="text-success fw-semibold">{money(row.paidAmount)}</span> },
+              {
+                key: 'dueAmount',
+                label: 'Due Amount',
+                render: (row) => <span className={row.dueAmount > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold'}>{money(row.dueAmount)}</span>
+              },
+              {
+                key: 'paymentStatus',
+                label: 'Status',
+                render: (row) => <span className={`badge ${statusClass[row.paymentStatus] || 'bg-secondary'}`}>{row.paymentStatus}</span>
+              },
+              { key: 'assigned', label: 'Assigned', render: (row) => <>{row.assignedFees?.length || 0}</> },
+              {
+                key: 'actions',
+                label: 'Action',
+                render: (row) => (
+                  <div className="text-end" style={{ whiteSpace: 'nowrap' }}>
                     <button className="btn btn-sm btn-outline-primary" onClick={() => openStudent(row)} disabled={busy} title="Manage fees">
                       <i className="bi bi-cash-coin me-1" />Manage
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                )
+              },
+            ]}
+            rows={fees.items}
+            mobileSummary={['name', 'totalFee']}
+            mobileDetailExclude={['checkbox']}
+            selectable={{ checked: (row) => selectedStudents.includes(row.student._id), onSelect: (row) => toggleStudent(row.student._id) }}
+            emptyMessage="No students found."
+          />
+        )}
 
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
           <span className="small text-secondary">Showing {showingFrom}-{showingTo} of {fees.total}</span>
