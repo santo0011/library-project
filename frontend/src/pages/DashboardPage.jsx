@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { dashboardService } from '../services/dashboardService.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -81,8 +82,8 @@ export const DashboardPage = () => {
     { label: 'Total Students', value: cards.totalStudents || 0, icon: 'bi-people', borderClass: 'stat-card-blue', iconBg: '#eef2ff', iconColor: '#4f46e5' },
     { label: 'Total Revenue', value: money(cards.totalRevenue), icon: 'bi-currency-rupee', borderClass: 'stat-card-green', iconBg: '#ecfdf5', iconColor: '#059669' },
     { label: 'Total Due', value: money(cards.totalDue), icon: 'bi-exclamation-circle', borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
-    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2' },
-    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed' },
+    { label: 'This Month Revenue', value: money(cards.thisMonthRevenue), icon: 'bi-calendar2-check', borderClass: 'stat-card-teal', iconBg: '#ecfeff', iconColor: '#0891b2', mobileHide: true },
+    { label: 'Published Exams', value: cards.publishedExams || cards.completedExams || 0, icon: 'bi-check-circle', borderClass: 'stat-card-purple', iconBg: '#f5f3ff', iconColor: '#7c3aed', mobileHide: true },
     { label: 'Active Exams', value: cards.activeExams || cards.pendingExams || 0, icon: 'bi-play-circle', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' }
   ];
 
@@ -98,7 +99,7 @@ export const DashboardPage = () => {
         <>
           <div className="row g-3 mb-4">
             {metrics.map((stat) => (
-              <div className="col-sm-6 col-xl-4" key={stat.label}>
+              <div className={`col-sm-6 col-xl-4 ${stat.mobileHide ? 'd-none d-sm-block' : ''}`} key={stat.label}>
                 <div className={`stat-card ${stat.borderClass}`}>
                   <div className="d-flex align-items-center gap-3">
                     <div className="dashboard-stat-icon" style={{ background: stat.iconBg, color: stat.iconColor }}>
@@ -161,36 +162,20 @@ export const DashboardPage = () => {
                   <h2 className="h6 fw-bold mb-0">Recent Payments</h2>
                   <span className="small text-secondary">Last 5 payments by date & time</span>
                 </div>
-                <div className="table-responsive">
-                  <table className="table align-middle">
-                    <thead>
-                      <tr>
-                        <th>Student</th>
-                        <th>Student ID</th>
-                        <th>Amount</th>
-                        <th>Fee Type</th>
-                        <th>Mode</th>
-                        <th>Date & Time</th>
-                        <th>Transaction</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentPayments.length === 0 ? (
-                        <tr><td colSpan="7" className="text-center text-secondary">No payments recorded yet.</td></tr>
-                      ) : recentPayments.map((payment, index) => (
-                        <tr key={`${payment.studentId}-${payment.paymentDate}-${payment.amount}-${index}`}>
-                          <td className="fw-semibold">{payment.studentName}</td>
-                          <td><span className="badge text-bg-secondary">{payment.studentId || '-'}</span></td>
-                          <td className="fw-semibold text-success">{money(payment.amount)}</td>
-                          <td>{payment.feeName || '-'}</td>
-                          <td>{payment.paymentMode || '-'}</td>
-                          <td>{payment.paymentDate ? moment(payment.paymentDate).format('DD, MMM, YYYY') : '-'}</td>
-                          <td className="text-truncate" style={{ maxWidth: 120 }} title={payment.transactionId || '-'}>{payment.transactionId || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ResponsiveTable
+                  columns={[
+                    { key: 'studentName', label: 'Student', render: (p) => <span className="fw-semibold">{p.studentName}</span> },
+                    { key: 'studentId', label: 'Student ID', render: (p) => <span className="badge text-bg-secondary">{p.studentId || '-'}</span> },
+                    { key: 'amount', label: 'Amount', render: (p) => <span className="fw-semibold text-success">{money(p.amount)}</span> },
+                    { key: 'feeName', label: 'Fee Type', render: (p) => <>{p.feeName || '-'}</> },
+                    { key: 'paymentMode', label: 'Mode', render: (p) => <>{p.paymentMode || '-'}</> },
+                    { key: 'paymentDate', label: 'Date & Time', render: (p) => <>{p.paymentDate ? moment(p.paymentDate).format('DD, MMM, YYYY') : '-'}</> },
+                    { key: 'transactionId', label: 'Transaction', render: (p) => <span className="text-truncate d-inline-block" style={{ maxWidth: 120 }} title={p.transactionId || '-'}>{p.transactionId || '-'}</span> },
+                  ]}
+                  rows={recentPayments}
+                  mobileSummary={['studentName', 'amount']}
+                  emptyMessage="No payments recorded yet."
+                />
               </div>
             </div>
           </div>

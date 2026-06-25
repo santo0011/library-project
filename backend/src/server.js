@@ -7,10 +7,11 @@ const start = async () => {
   await connectDatabase();
   await seedDefaultAdmin();
   const app = createApp();
-  app.listen(env.port, () => console.log(`API running on port ${env.port}`));
+  app.listen(env.port, "0.0.0.0", () => console.log(`API running on port ${env.port}`));
 };
 
 start().catch((error) => {
   console.error('Failed to start server', error);
   process.exit(1);
 });
+

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { api } from '../services/api.js';
 
 export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
@@ -81,7 +82,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
             <div className="flex-grow-1">
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <h5 className="fw-bold mb-0" style={{ color: 'var(--app-text)', fontSize: '1rem' }}>{student.name}</h5>
-                <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{student.status === 'active' ? 'bg-success' : 'bg-danger'}</span>
+                <span className={`badge ${student.status === 'active' ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{student.status === 'active' ? 'Active' : 'Inactive'}</span>
                 <span className="badge bg-secondary" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{student.studentId || 'N/A'}</span>
               </div>
               <div className="d-flex gap-3 mt-1 flex-wrap" style={{ color: 'var(--app-muted)', fontSize: '0.75rem' }}>
@@ -149,7 +150,6 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
             ))}
           </div>
 
-
           {/* Exam History & Results - compact */}
           <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-header border-0 pt-2 pb-0 px-3" style={{ background: 'transparent' }}>
@@ -164,40 +164,28 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                   <small style={{ fontSize: '0.75rem' }}>No exam results yet.</small>
                 </div>
               ) : (
-                <div className="table-responsive" style={{ maxHeight: 280, overflowY: 'auto' }}>
-                  <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Exam</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Subject</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Total</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Obtained</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>%</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Result</th>
-                        <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.map((r) => (
-                        <tr key={r._id}>
-                          <td className="fw-semibold" style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.exam?.name || 'N/A'}</td>
-                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r?.exam?.subject}</td>
-                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.totalMarks}</td>
-                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>{r.score}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>
-                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}</span>
-                          </td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>
-                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{r.passed ? 'bg-success' : 'bg-danger'}</span>
-                          </td>
-                          <td style={{ padding: '6px 8px', color: 'var(--app-text)', fontSize: '0.75rem' }}>
-                            {r.submittedAt ? moment(r.submittedAt).format('DD/MM/YY') : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ResponsiveTable
+                  columns={[
+                    { key: 'exam', label: 'Exam', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
+                    { key: 'subject', label: 'Subject', render: (r) => <>{r?.exam?.subject}</> },
+                    { key: 'totalMarks', label: 'Total', render: (r) => <>{r.totalMarks}</> },
+                    { key: 'score', label: 'Obtained', render: (r) => <>{r.score}</> },
+                    {
+                      key: 'percentage',
+                      label: '%',
+                      render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{(r.percentage || 0).toFixed(1)}%</span>
+                    },
+                    {
+                      key: 'passed',
+                      label: 'Result',
+                      render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: '0.65rem', padding: '2px 7px' }}>{r.passed ? 'Passed' : 'Failed'}</span>
+                    },
+                    { key: 'submittedAt', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD/MM/YY') : '-'}</> },
+                  ]}
+                  rows={results}
+                  mobileSummary={['exam', 'percentage']}
+                  emptyMessage="No exam results yet."
+                />
               )}
             </div>
           </div>
@@ -214,15 +202,15 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
               { label: 'Due Amount', value: money(fee?.dueAmount), borderClass: 'stat-card-red', iconBg: '#fef2f2', iconColor: '#dc2626' },
               { label: 'Status', value: fee?.paymentStatus || 'Unpaid', borderClass: 'stat-card-amber', iconBg: '#fffbeb', iconColor: '#d97706' }
             ].map((item) => (
-              <div className="col-sm-6 col-xl-3" key={item.label}>
+              <div className="col-6 col-xl-3" key={item.label}>
                 <div className={`stat-card ${item.borderClass}`} style={{ padding: '12px 14px' }}>
                   <div className="d-flex align-items-center gap-2">
                     <div className="dashboard-stat-icon" style={{ width: 36, height: 36, minWidth: 36, fontSize: 15, borderRadius: 9, background: item.iconBg, color: item.iconColor }}>
                       <i className={`bi ${item.label === 'Total Fee' ? 'bi-wallet2' : item.label === 'Paid Amount' ? 'bi-check-circle' : item.label === 'Due Amount' ? 'bi-exclamation-circle' : 'bi-receipt'}`} />
                     </div>
                     <div>
-                      <div className="stat-value" style={{ fontSize: '1rem', color: item.iconColor }}>{item.value}</div>
-                      <small className="stat-label" style={{ fontSize: '0.68rem' }}>{item.label}</small>
+                      <div className="stat-value" style={{ fontSize: '1.15rem', color: item.iconColor }}>{item.value}</div>
+                      <small className="stat-label" style={{ fontSize: '0.7rem' }}>{item.label}</small>
                     </div>
                   </div>
                 </div>
@@ -234,34 +222,19 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-body px-3 py-2">
               <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Fee History</h6>
-              <div className="table-responsive mb-2 py-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
-                <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Fee Type</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Total</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Paid</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Due</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Assigned</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {assignedFees.length === 0 ? (
-                      <tr><td colSpan="6" className="text-center text-secondary" style={{ padding: '8px', fontSize: '0.75rem' }}>No fee assigned yet.</td></tr>
-                    ) : assignedFees.map((item) => (
-                      <tr key={item._id}>
-                        <td className="fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.name}</td>
-                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.amount)}</td>
-                        <td className="text-success fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.paidAmount)}</td>
-                        <td className="text-danger fw-semibold" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(item.dueAmount)}</td>
-                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.assignedAt ? moment(item.assignedAt).format('DD/MM/YY') : '-'}</td>
-                        <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{item.description || '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ResponsiveTable
+                columns={[
+                  { key: 'name', label: 'Fee Type', render: (item) => <span className="fw-semibold">{item.name}</span> },
+                  { key: 'amount', label: 'Total', render: (item) => <>{money(item.amount)}</> },
+                  { key: 'paidAmount', label: 'Paid', render: (item) => <span className="text-success fw-semibold">{money(item.paidAmount)}</span> },
+                  { key: 'dueAmount', label: 'Due', render: (item) => <span className="text-danger fw-semibold">{money(item.dueAmount)}</span> },
+                  { key: 'assignedAt', label: 'Assigned', render: (item) => <>{item.assignedAt ? moment(item.assignedAt).format('DD/MM/YY') : '-'}</> },
+                  { key: 'description', label: 'Description', render: (item) => <>{item.description || '-'}</> },
+                ]}
+                rows={assignedFees}
+                mobileSummary={['name', 'amount']}
+                emptyMessage="No fee assigned yet."
+              />
             </div>
           </div>
 
@@ -269,38 +242,19 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
           <div className="card shadow-sm border mb-3" style={{ borderRadius: 10 }}>
             <div className="card-body px-3 py-2">
               <h6 className="fw-bold mb-2" style={{ fontSize: '0.82rem' }}>Payment History</h6>
-              <div className="table-responsive py-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
-                <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.75rem' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Date</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Amount</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Mode</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Fee Type</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Transaction</th>
-                      <th style={{ fontSize: '0.68rem', padding: '6px 8px' }}>Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payments.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="text-center text-secondary" style={{ padding: '8px', fontSize: '0.75rem' }}>No payments recorded.</td>
-                      </tr>
-                    ) : (
-                      [...payments].map((payment) => (
-                        <tr key={payment._id}>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.paymentDate ? moment(payment.paymentDate).format('DD/MM/YY') : '-'}</td>
-                          <td className="fw-semibold text-success" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(payment.amount)}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.paymentMode || '-'}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.feeName || '-'}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.transactionId || '-'}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.remarks || '-'}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <ResponsiveTable
+                columns={[
+                  { key: 'paymentDate', label: 'Date', render: (p) => <>{p.paymentDate ? moment(p.paymentDate).format('DD/MM/YY') : '-'}</> },
+                  { key: 'amount', label: 'Amount', render: (p) => <span className="fw-semibold text-success">{money(p.amount)}</span> },
+                  { key: 'paymentMode', label: 'Mode', render: (p) => <>{p.paymentMode || '-'}</> },
+                  { key: 'feeName', label: 'Fee Type', render: (p) => <>{p.feeName || '-'}</> },
+                  { key: 'transactionId', label: 'Transaction', render: (p) => <>{p.transactionId || '-'}</> },
+                  { key: 'remarks', label: 'Remarks', render: (p) => <>{p.remarks || '-'}</> },
+                ]}
+                rows={payments}
+                mobileSummary={['paymentDate', 'amount']}
+                emptyMessage="No payments recorded."
+              />
             </div>
           </div>
         </>

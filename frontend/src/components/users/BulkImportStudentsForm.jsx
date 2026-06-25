@@ -7,7 +7,7 @@ const generateSampleTemplate = () => {
   const wb = XLSX.utils.book_new();
   const sampleData = [
     TEMPLATE_COLUMNS,
-    ['John Doe', 'john@example.com', '123456', '9876543210', 'Male', '2005-05-10']
+    ['Santo Biswas', 'santobiswas0011@gmail.com', '123456', '7584049912', 'Male', '2002-06-24']
   ];
   const ws = XLSX.utils.aoa_to_sheet(sampleData);
   ws['!cols'] = TEMPLATE_COLUMNS.map(() => ({ wch: 22 }));

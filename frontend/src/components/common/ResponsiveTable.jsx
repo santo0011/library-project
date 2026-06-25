@@ -9,8 +9,11 @@ import { useState } from 'react';
      mobileSummary - Array of keys to show in card summary (2-4 items)
      onRowClick - optional click handler for desktop rows
      emptyMessage - string shown when no rows
-*/
-export const ResponsiveTable = ({ columns, rows, mobileSummary, onRowClick, emptyMessage = 'No data available.' }) => {
+     mobileDetailExclude - Array of column keys to hide in mobile detail expanded view
+     selectable - if true, renders a checkbox at the top of each mobile card
+       Expected to be { checked: boolean, onSelect: (row) => void, rowId: (row) => string }
+ */
+export const ResponsiveTable = ({ columns, rows, mobileSummary, onRowClick, emptyMessage = 'No data available.', mobileDetailExclude = [], selectable }) => {
   const [expanded, setExpanded] = useState({});
 
   const toggleExpand = (id) => {
@@ -28,7 +31,7 @@ export const ResponsiveTable = ({ columns, rows, mobileSummary, onRowClick, empt
 
   // Determine which columns are summary vs detail
   const summaryKeys = mobileSummary || columns.slice(0, 3).map((c) => c.key);
-  const detailColumns = columns.filter((c) => !summaryKeys.includes(c.key));
+  const detailColumns = columns.filter((c) => !summaryKeys.includes(c.key) && !mobileDetailExclude.includes(c.key));
 
   return (
     <>
@@ -69,8 +72,24 @@ export const ResponsiveTable = ({ columns, rows, mobileSummary, onRowClick, empt
             const rowId = row._id || row.id || idx;
             const isExpanded = expanded[rowId];
 
+            const isSelected = selectable ? selectable.checked(row) : false;
+
             return (
-              <div key={rowId} className="surface p-3 mobile-record-card">
+              <div key={rowId} className={`surface p-3 mobile-record-card ${isSelected ? 'border-primary' : ''}`} style={isSelected ? { borderColor: 'var(--primary)', borderWidth: 2 } : {}}>
+                {/* Select checkbox at top of card */}
+                {selectable && (
+                  <div className="d-flex justify-content-end mb-2">
+                    <div className="form-check mb-0">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => selectable.onSelect(row)}
+                        style={{ cursor: "pointer", border: "0.6px solid #585454" }}
+                      />
+                    </div>
+                  </div>
+                )}
                 {/* Summary Fields */}
                 <div className="d-flex flex-column gap-1">
                   {summaryKeys.map((key) => {

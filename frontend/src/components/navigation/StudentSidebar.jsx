@@ -36,7 +36,7 @@ export const StudentSidebar = ({ open, onClose }) => {
           </div>
           <div>
             <div className="sidebar-brand-text">Student Panel</div>
-            <div className="sidebar-brand-sub">Exam System</div>
+            <div className="sidebar-brand-sub">Library Management System</div>
           </div>
           <button className="btn btn-sm btn-outline-light mobile-menu ms-auto" type="button" onClick={onClose} aria-label="Close menu">
             <i className="bi bi-x-lg" />
