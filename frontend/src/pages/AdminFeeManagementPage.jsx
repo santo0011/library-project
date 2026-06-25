@@ -350,7 +350,7 @@ export const AdminFeeManagementPage = () => {
         </div>
         <div className="card-body p-3">
           {recentPaymentsLoading ? (
-            <p className="text-secondary small mb-0">Loading recent payments...</p>
+            <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
           ) : recentPayments.length === 0 ? (
             <p className="text-secondary small mb-0">No payments recorded yet.</p>
           ) : (
@@ -447,7 +447,7 @@ export const AdminFeeManagementPage = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="9">Loading fee records...</td></tr>
+                <tr><td colSpan="9" className="text-center"><div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div></td></tr>
               ) : fees.items.length === 0 ? (
                 <tr><td colSpan="9" className="text-center text-secondary">No students found.</td></tr>
               ) : fees.items.map((row) => (

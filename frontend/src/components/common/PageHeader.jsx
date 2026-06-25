@@ -7,7 +7,7 @@ export const PageHeader = ({ title, subtitle, action, back }) => {
       <div className="d-flex align-items-center gap-3">
         {back && <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => navigate(back)}><i className="bi bi-arrow-left" /></button>}
         <div>
-          <h1 className="h3 fw-bold mb-1">{title}</h1>
+          <h1 className="h4 fw-bold mb-1">{title}</h1>
           {subtitle && <p className="text-secondary mb-0">{subtitle}</p>}
         </div>
       </div>

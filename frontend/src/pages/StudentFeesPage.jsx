@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { FeeSummaryCards } from '../components/common/FeeSummaryCards.jsx';
 import { feeService } from '../services/feeService.js';
 
@@ -49,95 +50,58 @@ export const StudentFeesPage = () => {
     });
   }, [fee]);
 
-  if (loading) return <div className="surface p-4">Loading fee details...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
     <>
       <PageHeader title="Fees" subtitle="View your fee summary and payment history." />
 
-      <FeeSummaryCards fee={fee} />
-
-      <div className="surface p-3">
-        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-          <h2 className="h6 fw-bold mb-0">Fee History</h2>
-          <span className={`badge ${statusClass[fee.paymentStatus] || 'bg-secondary'}`}>{fee.paymentStatus}</span>
+      {loading ? (
+        <div className="surface p-4">
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
         </div>
-        <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th>Fee Type</th>
-                <th>Total Fee</th>
-                <th>Paid Amount</th>
-                <th>Due Amount</th>
-                <th>Assigned</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignedFees.length === 0 ? (
-                <tr><td colSpan="6" className="text-center text-secondary">No fee assigned yet.</td></tr>
-              ) : assignedFees.map((item) => (
-                <tr key={item._id}>
-                  <td className="fw-semibold">{item.name}</td>
-                  <td>{money(item.amount)}</td>
-                  <td className="text-success fw-semibold">{money(item.paidAmount)}</td>
-                  <td className="text-danger fw-semibold">{money(item.dueAmount)}</td>
-                  <td>{item.assignedAt ? moment(item.assignedAt).format('DD, MMM, YYYY') : '-'}</td>
-                  <td>{item.description || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      ) : (
+        <>
+          <FeeSummaryCards fee={fee} />
 
-      <div className="surface p-3 mt-4">
-        <h2 className="h6 fw-bold mb-3">Payment History</h2>
-        <div className="table-responsive" style={{ maxHeight: 310, overflowY: 'auto' }}>
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Mode</th>
-                <th>Fee Type</th>
-                <th>Transaction</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
+          <div className="surface p-3">
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h2 className="h6 fw-bold mb-0">Fee History</h2>
+              <span className={`badge ${statusClass[fee.paymentStatus] || 'bg-secondary'}`}>{fee.paymentStatus}</span>
+            </div>
+            <ResponsiveTable
+              columns={[
+                { key: 'name', label: 'Fee Type', render: (item) => <span className="fw-semibold">{item.name}</span> },
+                { key: 'amount', label: 'Total Fee', render: (item) => <>{money(item.amount)}</> },
+                { key: 'paidAmount', label: 'Paid', render: (item) => <span className="text-success fw-semibold">{money(item.paidAmount)}</span> },
+                { key: 'dueAmount', label: 'Due', render: (item) => <span className="text-danger fw-semibold">{money(item.dueAmount)}</span> },
+                { key: 'assignedAt', label: 'Assigned', render: (item) => <>{item.assignedAt ? moment(item.assignedAt).format('DD, MMM, YYYY') : '-'}</> },
+                { key: 'description', label: 'Description', render: (item) => <>{item.description || '-'}</> },
+              ]}
+              rows={assignedFees}
+              mobileSummary={['name', 'dueAmount']}
+              emptyMessage="No fee assigned yet."
+            />
+          </div>
 
-            <tbody>
-              {payments.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center text-secondary">
-                    No payments recorded yet.
-                  </td>
-                </tr>
-              ) : (
-                [...payments].reverse().map((payment) => (
-                  <tr key={payment._id}>
-                    <td>
-                      {payment.paymentDate
-                        ? moment(payment.paymentDate).format("DD, MMM, YYYY")
-                        : "-"}
-                    </td>
-                    <td className="fw-semibold text-success">
-                      {money(payment.amount)}
-                    </td>
-                    <td>{payment.paymentMode || "-"}</td>
-                    <td>{payment.feeName || "-"}</td>
-                    <td>{payment.transactionId || "-"}</td>
-                    <td>{payment.remarks || "-"}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-
-          </table>
-        </div>
-      </div>
+          <div className="surface p-3 mt-4">
+            <h2 className="h6 fw-bold mb-3">Payment History</h2>
+            <ResponsiveTable
+              columns={[
+                { key: 'date', label: 'Date', render: (p) => <>{p.paymentDate ? moment(p.paymentDate).format('DD, MMM, YYYY') : '-'}</> },
+                { key: 'amount', label: 'Amount', render: (p) => <span className="text-success fw-semibold">{money(p.amount)}</span> },
+                { key: 'mode', label: 'Mode', render: (p) => <>{p.paymentMode || '-'}</> },
+                { key: 'feeType', label: 'Fee Type', render: (p) => <>{p.feeName || '-'}</> },
+                { key: 'transaction', label: 'Transaction', render: (p) => <>{p.transactionId || '-'}</> },
+                { key: 'remarks', label: 'Remarks', render: (p) => <>{p.remarks || '-'}</> },
+              ]}
+              rows={[...payments].reverse()}
+              mobileSummary={['date', 'amount']}
+              emptyMessage="No payments recorded yet."
+            />
+          </div>
+        </>
+      )}
     </>
   );
 };

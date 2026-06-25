@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { api } from '../services/api.js';
 
 export const StudentResultDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Reset state on every navigation — this fires BEFORE the next render
+    // when location.pathname changes (list vs detail are different paths)
+    setLoading(true);
+    setResult(null);
+    setError('');
+
     if (!id) {
       api.get('/students/results')
         .then((res) => setResult({ results: res.data.data || [] }))
@@ -22,33 +30,13 @@ export const StudentResultDetailPage = () => {
         .catch((err) => setError(err.response?.data?.message || 'Failed to load'))
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, location.pathname]);
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center py-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary mb-3" role="status" style={{ width: 48, height: 48 }} />
-          <p className="text-secondary">Loading results...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <div className="alert alert-danger d-flex align-items-center gap-2">
-          <i className="bi bi-exclamation-triangle flex-shrink-0" />
-          <span>{error}</span>
-        </div>
-      </div>
-    );
-  }
-
-  // List view
-  if (!id && result?.results) {
-    const results = result.results;
+  // List view — header shows immediately, loader for content
+  if (!id) {
+    // Defensive guard: if result is still a detail object (stale data from navigation),
+    // show loading instead of crashing on result.results being undefined
+    const isStaleDetail = result && !Array.isArray(result.results);
     return (
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4">
@@ -57,7 +45,16 @@ export const StudentResultDetailPage = () => {
             <p className="text-secondary mb-0">View your exam performance history.</p>
           </div>
         </div>
-        {results.length === 0 ? (
+        {loading || isStaleDetail ? (
+          <div className="surface p-4">
+            <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+          </div>
+        ) : error ? (
+          <div className="alert alert-danger d-flex align-items-center gap-2">
+            <i className="bi bi-exclamation-triangle flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        ) : result?.results?.length === 0 ? (
           <div className="card shadow border-0" style={{ borderRadius: 16 }}>
             <div className="card-body text-center py-5">
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style={{ width: 72, height: 72 }}>
@@ -67,54 +64,59 @@ export const StudentResultDetailPage = () => {
             </div>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-hover align-middle rounded-3 shadow overflow-hidden">
-              <thead className="text-white" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-                <tr>
-                  <th className="text-white">Exam Name</th>
-                  <th className="text-white">Total Marks</th>
-                  <th className="text-white">Obtained</th>
-                  <th className="text-white">Percentage</th>
-                  <th className="text-white">Result</th>
-                  <th className="text-white">Date</th>
-                  <th className="text-white text-end">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r) => (
-                  <tr key={r._id} className="cursor-pointer" onClick={() => navigate(`/student/results/${r._id}`)}>
-                    <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.exam?.name || 'N/A'}</td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.totalMarks}</td>
-                    <td className="fw-semibold" style={{ color: 'var(--app-text)' }}>{r.score}</td>
-                    <td>
-                      <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>
-                        {r.percentage || 0}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>
-                        {r.passed ? 'Pass' : 'Fail'}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--app-text)' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</td>
-                    <td className="text-end">
-                      <button className="btn btn-sm rounded-pill text-white px-3"
-                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
-                        onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
-                        <i className="bi bi-eye me-1" />View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            columns={[
+              { key: 'examName', label: 'Exam Name', render: (r) => <span className="fw-semibold">{r.exam?.name || 'N/A'}</span> },
+              { key: 'totalMarks', label: 'Total Marks', render: (r) => <>{r.totalMarks}</> },
+              { key: 'score', label: 'Obtained', render: (r) => <span className="fw-semibold">{r.score}</span> },
+              { key: 'percentage', label: 'Percentage', render: (r) => <span className={`badge ${(r.percentage || 0) >= 40 ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.percentage || 0}%</span> },
+              { key: 'result', label: 'Result', render: (r) => <span className={`badge ${r.passed ? 'bg-success' : 'bg-danger'} rounded-pill`}>{r.passed ? 'Pass' : 'Fail'}</span> },
+              { key: 'date', label: 'Date', render: (r) => <>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</> },
+              {
+                key: 'action', label: 'Action', render: (r) => (
+                  <button className="btn btn-sm rounded-pill text-white px-3"
+                    style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/student/results/${r._id}`); }}>
+                    <i className="bi bi-eye me-1" />View
+                  </button>
+                )
+              },
+            ]}
+            rows={result.results}
+            mobileSummary={['examName', 'percentage']}
+            onRowClick={(r) => navigate(`/student/results/${r._id}`)}
+            emptyMessage="No results yet. Complete an exam to see your results."
+          />
         )}
       </div>
     );
   }
 
-  // Single result detail
+  // Detail view (single result) — loading state
+  if (loading) {
+    return (
+      <div>
+        {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
+          <i className="bi bi-arrow-left me-1" /> Back to Results
+        </button> */}
+        <div className="surface p-4">
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !result) {
+    return (
+      <div className="p-4">
+        <div className="alert alert-danger d-flex align-items-center gap-2">
+          <i className="bi bi-exclamation-triangle flex-shrink-0" />
+          <span>{error || 'Result not found'}</span>
+        </div>
+      </div>
+    );
+  }
+
   const r = result;
   const totalQuestions = r.resultItems?.length || 0;
   const correctCount = r.resultItems?.filter((item) => item.isCorrect).length || 0;
@@ -123,20 +125,23 @@ export const StudentResultDetailPage = () => {
 
   return (
     <div>
-      <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
+      {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
         <i className="bi bi-arrow-left me-1" /> Back to Results
-      </button>
+      </button> */}
 
-      {/* Header Card with gradient */}
       <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 16, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <div className="card-body p-4">
+        <div className="card-body px-4">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
               <h4 className="fw-bold mb-1">{r.exam?.name || 'Exam Result'}</h4>
               <p className="mb-0 opacity-75">{r.exam?.subject || ''}</p>
+              <small className="opacity-60 d-block mt-1">
+                <i className="bi bi-calendar3 me-1" />
+                {r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}
+              </small>
             </div>
             <div className={`px-4 py-2 rounded-3 ${r.passed ? 'bg-success' : 'bg-danger'}`}>
-              <div className="fw-bold fs-3 text-center">
+              <div className="fw-bold fs-5 text-center">
                 {r.passed ? 'PASS' : 'FAIL'}
               </div>
             </div>
@@ -144,86 +149,88 @@ export const StudentResultDetailPage = () => {
         </div>
       </div>
 
-      {/* Score Stats Cards */}
+      {/* Result summary stats — 6 cards in 3x2 grid on desktop, 2 per row on mobile */}
       <div className="row g-3 mb-4">
-        <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-primary fw-medium">Total Marks</small>
-              <div className="fs-2 fw-bold" style={{ color: '#1565c0' }}>{r.totalMarks}</div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-blue">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#eef2ff', color: '#4f46e5' }}>
+                <i className="bi bi-calculator" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#4f46e5' }}>{r.totalMarks}</div>
+                <small className="stat-label">Total Marks</small>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-success fw-medium">Obtained</small>
-              <div className="fs-2 fw-bold" style={{ color: '#2e7d32' }}>{r.score}</div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-green">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+                <i className="bi bi-check2-square" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#059669' }}>{r.score}</div>
+                <small className="stat-label">Obtained</small>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-warning fw-medium" style={{ color: '#e65100' }}>Percentage</small>
-              <div className="fs-2 fw-bold" style={{ color: '#e65100' }}>{r.percentage}%</div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-amber">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <i className="bi bi-percent" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#d97706' }}>{r.percentage}%</div>
+                <small className="stat-label">Percentage</small>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card shadow border-0 h-100" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
-            <div className="card-body p-3 text-center">
-              <small className="text-danger fw-medium">Date</small>
-              <div className="fs-6 fw-bold" style={{ color: '#c62828' }}>{r.submittedAt ? moment(r.submittedAt).format('DD, MMM, YYYY') : '-'}</div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-green">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+                <i className="bi bi-check-lg" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#059669' }}>{correctCount}</div>
+                <small className="stat-label">Correct</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-red">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}>
+                <i className="bi bi-x-lg" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#dc2626' }}>{wrongCount}</div>
+                <small className="stat-label">Wrong</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-md-4">
+          <div className="stat-card stat-card-amber">
+            <div className="d-flex align-items-center gap-3">
+              <div className="dashboard-stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <i className="bi bi-question-lg" />
+              </div>
+              <div>
+                <div className="stat-value" style={{ color: '#d97706' }}>{unansweredCount}</div>
+                <small className="stat-label">Unanswered</small>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Question Stats */}
-      <div className="row g-3 mb-4">
-        <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
-                <i className="bi bi-check-lg fs-5" />
-              </div>
-              <div>
-                <div className="fs-4 fw-bold text-success">{correctCount}</div>
-                <small className="text-success fw-medium">Correct</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger text-white" style={{ width: 48, height: 48, minWidth: 48 }}>
-                <i className="bi bi-x-lg fs-5" />
-              </div>
-              <div>
-                <div className="fs-4 fw-bold text-danger">{wrongCount}</div>
-                <small className="text-danger fw-medium">Wrong</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-12 col-md-4">
-          <div className="card shadow border-0" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle text-white" style={{ width: 48, height: 48, minWidth: 48, background: '#e65100' }}>
-                <i className="bi bi-question-lg fs-5" />
-              </div>
-              <div>
-                <div className="fs-4 fw-bold" style={{ color: '#e65100' }}>{unansweredCount}</div>
-                <small className="fw-medium" style={{ color: '#e65100' }}>Unanswered</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Bar */}
       <div className="card shadow border-0 mb-4" style={{ borderRadius: 12 }}>
         <div className="card-body p-4">
           <div className="d-flex justify-content-between mb-2">
@@ -232,37 +239,36 @@ export const StudentResultDetailPage = () => {
               {r.percentage}%
             </span>
           </div>
-          <div className="progress" style={{ height: 14, borderRadius: 7 }}>
+          <div className="progress" style={{ height: 7, borderRadius: 7 }}>
             <div className={`progress-bar ${(r.percentage || 0) >= 70 ? 'bg-success' : (r.percentage || 0) >= 40 ? 'bg-warning' : 'bg-danger'}`}
               style={{ width: `${Math.min(r.percentage || 0, 100)}%`, borderRadius: 7, transition: 'width 1s ease' }} />
           </div>
         </div>
       </div>
 
-      {/* Question Review */}
       {r.resultItems?.length > 0 && (
         <div>
-          <h5 className="fw-bold mb-3" style={{ color: 'var(--app-text)' }}>
+          <h5 className="fw-bold mb-2" style={{ color: 'var(--app-text)' }}>
             <i className="bi bi-list-check me-2 text-primary" />Answer Review
           </h5>
-          <div className="d-flex flex-column gap-3">
+          <div className="d-flex flex-column gap-2">
             {r.resultItems.map((item, idx) => {
               const isCorrect = item.isCorrect;
               return (
-                <div key={item.question?._id || idx} className="card shadow border-0" style={{ borderRadius: 12 }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center gap-2 mb-3">
-                      <span className="badge rounded-pill text-white px-3 py-1"
-                        style={{ background: isCorrect ? 'linear-gradient(135deg, #43e97b, #38f9d7)' : 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
+                <div key={item.question?._id || idx} className="card shadow-sm border-0" style={{ borderRadius: 10 }}>
+                  <div className="card-body p-3">
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <span className="badge rounded-pill text-white px-2 py-1"
+                        style={{ background: isCorrect ? 'linear-gradient(135deg, #43e97b, #38f9d7)' : 'linear-gradient(135deg, #f093fb, #f5576c)', fontSize: 11 }}>
                         Q{idx + 1}
                       </span>
-                      <span className={`badge rounded-pill ${isCorrect ? 'bg-success' : 'bg-danger'}`}>
+                      <span className={`badge rounded-pill ${isCorrect ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: 11 }}>
                         {isCorrect ? 'Correct' : 'Incorrect'}
                       </span>
-                      <span className="small" style={{ color: 'var(--app-muted)' }}>{item.awardedMarks}/{item.marks} marks</span>
+                      <span className="small" style={{ color: 'var(--app-muted)' }}>{item.awardedMarks}/{item.marks}</span>
                     </div>
 
-                    <p className="fw-medium mb-3" style={{ color: 'var(--app-text)' }}>{item.title}</p>
+                    <p className="fw-medium mb-2" style={{ color: 'var(--app-text)', fontSize: 14 }}>{item.title}</p>
 
                     <div className="d-flex flex-column gap-1">
                       {(item.options || []).map((opt, i) => {
@@ -286,14 +292,14 @@ export const StudentResultDetailPage = () => {
                         }
 
                         return (
-                          <div key={i} className="p-2 rounded-2 d-flex align-items-center gap-2 border"
+                          <div key={i} className="py-1 px-2 rounded-2 d-flex align-items-center gap-2 border"
                             style={{ background: bgColor, borderColor: borderColor, color: textColor }}>
                             <span className={`d-inline-flex align-items-center justify-content-center rounded-circle fw-bold small ${optIsCorrect ? 'bg-success text-white' : isSelected && !optIsCorrect ? 'bg-danger text-white' : 'bg-light'}`}
-                              style={{ width: 28, height: 28, minWidth: 28, fontSize: 11, color: "#000" }}>
+                              style={{ width: 22, height: 22, minWidth: 22, fontSize: 10 }}>
                               {String.fromCharCode(65 + i)}
                             </span>
                             <span className="small">{opt.text}</span>
-                            {icon}
+                            {icon && <span className="ms-auto">{icon}</span>}
                           </div>
                         );
                       })}

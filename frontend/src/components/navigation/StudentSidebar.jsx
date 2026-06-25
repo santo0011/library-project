@@ -27,6 +27,8 @@ export const StudentSidebar = ({ open, onClose }) => {
 
   return (
     <>
+      {/* Mobile overlay - closes sidebar when tapped outside */}
+      {open && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="sidebar-brand">
           <div className="sidebar-brand-icon">

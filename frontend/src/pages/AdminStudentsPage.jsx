@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import { PageHeader } from '../components/common/PageHeader.jsx';
+import { ResponsiveTable } from '../components/common/ResponsiveTable.jsx';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { Drawer } from '../components/common/Drawer.jsx';
 import { StudentCreateFormModal } from '../components/users/StudentCreateFormModal.jsx';
@@ -165,46 +166,33 @@ export const AdminStudentsPage = () => {
         </div>
       </div>
       <div className="surface p-3">
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Gender</th>
-                <th>Status</th>
-                <th>Registered</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="8">Loading...</td></tr>
-              ) : students.items.length === 0 ? (
-                <tr><td colSpan="8" className="text-secondary text-center">No students found.</td></tr>
-              ) : students.items.map((s) => (
-                <tr key={s._id}>
-                  <td><span className="badge text-bg-secondary">{s.studentId || '-'}</span></td>
-                  <td className="fw-semibold">{s.name}</td>
-                  <td>{s.email}</td>
-                  <td>{s.mobile || '-'}</td>
-                  <td>{s.gender || '-'}</td>
-                  <td><StatusBadge status={s.status} /></td>
-                  <td>{s.createdAt ? moment(s.createdAt).format('DD, MMM, YYYY') : '-'}</td>
-                  <td className="text-end">
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setEditing({ ...s })} title="Edit"><i className="bi bi-pencil" /></button>
-                    <button className="btn btn-sm btn-outline-info me-1" onClick={() => setDrawerStudentId(s._id)} title="View Profile"><i className="bi bi-eye" /></button>
-                    <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => toggleStatus(s)} disabled={busy} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
-                      <i className={`bi ${s.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {loading ? (
+          <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
+        ) : (
+          <ResponsiveTable
+            columns={[
+              { key: 'studentId', label: 'Student ID', render: (s) => <span className="badge text-bg-secondary">{s.studentId || '-'}</span> },
+              { key: 'name', label: 'Name', render: (s) => <span className="fw-semibold">{s.name}</span> },
+              { key: 'email', label: 'Email', render: (s) => <>{s.email}</> },
+              { key: 'mobile', label: 'Mobile', render: (s) => <>{s.mobile || '-'}</> },
+              { key: 'gender', label: 'Gender', render: (s) => <>{s.gender || '-'}</> },
+              { key: 'status', label: 'Status', render: (s) => <StatusBadge status={s.status} /> },
+              { key: 'createdAt', label: 'Registered', render: (s) => <>{s.createdAt ? moment(s.createdAt).format('DD, MMM, YYYY') : '-'}</> },
+              { key: 'actions', label: 'Actions', render: (s) => (
+                <div className="text-end">
+                  <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setEditing({ ...s })} title="Edit"><i className="bi bi-pencil" /></button>
+                  <button className="btn btn-sm btn-outline-info me-1" onClick={() => setDrawerStudentId(s._id)} title="View Profile"><i className="bi bi-eye" /></button>
+                  <button className={`btn btn-sm ${s.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => toggleStatus(s)} disabled={busy} title={s.status === 'active' ? 'Deactivate' : 'Activate'}>
+                    <i className={`bi ${s.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`} />
+                  </button>
+                </div>
+              )},
+            ]}
+            rows={students.items}
+            mobileSummary={['studentId', 'name']}
+            emptyMessage="No students found."
+          />
+        )}
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <span className="small text-secondary">Showing {(students.items.length > 0 ? ((students.page - 1) * 10 + 1) : 0)}–{Math.min(students.page * 10, students.total)} of {students.total}</span>
           {students.pages > 1 && (
@@ -301,7 +289,7 @@ export const AdminStudentsPage = () => {
         show={Boolean(drawerStudentId)}
         title="Student Details"
         onClose={() => setDrawerStudentId(null)}
-        width="800px"
+        width="700px"
       >
         {drawerStudentId && <AdminStudentDetailPage id={drawerStudentId} onClose={() => setDrawerStudentId(null)} />}
       </Drawer>
