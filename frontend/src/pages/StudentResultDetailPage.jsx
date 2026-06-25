@@ -96,9 +96,9 @@ export const StudentResultDetailPage = () => {
   if (loading) {
     return (
       <div>
-        <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
+        {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
           <i className="bi bi-arrow-left me-1" /> Back to Results
-        </button>
+        </button> */}
         <div className="surface p-4">
           <div className="loading-spinner"><i className="fa-solid fa-spinner fa-spin"></i></div>
         </div>
@@ -125,9 +125,9 @@ export const StudentResultDetailPage = () => {
 
   return (
     <div>
-      <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
+      {/* <button className="btn btn-outline-secondary btn-sm rounded-pill mb-3" onClick={() => navigate('/student/results')}>
         <i className="bi bi-arrow-left me-1" /> Back to Results
-      </button>
+      </button> */}
 
       <div className="card shadow border-0 mb-4 text-white" style={{ borderRadius: 16, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div className="card-body px-4">

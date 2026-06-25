@@ -287,7 +287,7 @@ export const AdminStudentDetailPage = ({ id: propId, onClose }) => {
                         <td colSpan="6" className="text-center text-secondary" style={{ padding: '8px', fontSize: '0.75rem' }}>No payments recorded.</td>
                       </tr>
                     ) : (
-                      [...payments].reverse().map((payment) => (
+                      [...payments].map((payment) => (
                         <tr key={payment._id}>
                           <td style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{payment.paymentDate ? moment(payment.paymentDate).format('DD/MM/YY') : '-'}</td>
                           <td className="fw-semibold text-success" style={{ padding: '6px 8px', fontSize: '0.75rem' }}>{money(payment.amount)}</td>

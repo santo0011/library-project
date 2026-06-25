@@ -136,19 +136,19 @@ export const StudentProfilePage = () => {
           <div className="row g-3 mb-4">
             <div className="col-4">
               <div className="card shadow border-0 text-center p-3" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' }}>
-                <div className="fs-3 fw-bold" style={{ color: '#1565c0' }}>{stats.totalExams}</div>
+                <div className="fw-bold" style={{ color: '#1565c0', fontSize: '1.2rem' }}>{stats.totalExams}</div>
                 <small className="fw-medium" style={{ color: '#1565c0' }}>Total Exams</small>
               </div>
             </div>
             <div className="col-4">
               <div className="card shadow border-0 text-center p-3" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' }}>
-                <div className="fs-3 fw-bold" style={{ color: '#2e7d32' }}>{stats.completedExams}</div>
+                <div className="fw-bold" style={{ color: '#2e7d32', fontSize: '1.2rem' }}>{stats.completedExams}</div>
                 <small className="fw-medium" style={{ color: '#2e7d32' }}>Completed</small>
               </div>
             </div>
             <div className="col-4">
               <div className="card shadow border-0 text-center p-3" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' }}>
-                <div className="fs-3 fw-bold" style={{ color: '#e65100' }}>{stats.avgPercentage}%</div>
+                <div className="fw-bold" style={{ color: '#e65100', fontSize: '1.2rem' }}>{stats.avgPercentage}%</div>
                 <small className="fw-medium" style={{ color: '#e65100' }}>Avg Score</small>
               </div>
             </div>
