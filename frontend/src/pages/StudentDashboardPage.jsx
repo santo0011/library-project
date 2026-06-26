@@ -53,6 +53,7 @@ const PerformanceSummary = ({ results }) => {
 
 /* ─── Available Exams Section ─── */
 const AvailableExamsSection = ({ exams }) => {
+
   const navigate = useNavigate();
 
   const filteredExams = useMemo(() => {
@@ -78,25 +79,34 @@ const AvailableExamsSection = ({ exams }) => {
 
   return (
     <div className="d-flex flex-column gap-2">
-      {filteredExams.map((exam) => (
-        <div key={exam._id} className="d-flex align-items-center justify-content-between p-3 rounded-3"
-          style={{ background: 'var(--app-bg)' }}>
-          <div>
-            <div className="fw-semibold small" style={{ color: 'var(--app-text)', fontSize: "14px" }}>{exam.name}</div>
-            <small style={{ color: 'var(--app-muted)' }}>{exam.subject} &bull; {exam.totalMarks} marks</small>
-          </div>
-          {exam.isAvailable ? (
-            <button className="btn btn-sm btn-primary rounded-pill px-3 shadow-sm"
-              onClick={() => navigate('/student/exams')}>
+      {filteredExams
+        .filter((exam) => exam.isAvailable)
+        .map((exam) => (
+          <div
+            key={exam._id}
+            className="d-flex align-items-center justify-content-between p-3 rounded-3"
+            style={{ background: 'var(--app-bg)' }}
+          >
+            <div>
+              <div
+                className="fw-semibold small"
+                style={{ color: 'var(--app-text)', fontSize: "14px" }}
+              >
+                {exam.name}
+              </div>
+              <small style={{ color: 'var(--app-muted)' }}>
+                {exam.subject} &bull; {exam.totalMarks} marks
+              </small>
+            </div>
+
+            <button
+              className="btn btn-sm btn-primary rounded-pill px-3 shadow-sm"
+              onClick={() => navigate('/student/exams')}
+            >
               Start
             </button>
-          ) : (
-            <span className="btn btn-sm btn-outline-secondary rounded-pill px-3" style={{ cursor: 'default' }}>
-              Not Available Yet
-            </span>
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
     </div>
   );
 };
